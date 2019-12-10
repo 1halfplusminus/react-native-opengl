@@ -1,0 +1,495 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v0.9.36",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Stroke"
+    },
+    {
+      "mesh": 0,
+      "name": "SlotMachine",
+      "scale": [
+        0.9855346083641052,
+        0.9855346083641052,
+        0.9855346083641052
+      ]
+    },
+    {
+      "mesh": 1,
+      "name": "Background"
+    },
+    {
+      "mesh": 2,
+      "name": "Row1",
+      "translation": [
+        -0.31434544920921326,
+        1.1678500175476074,
+        -0.024714000523090363
+      ]
+    },
+    {
+      "mesh": 3,
+      "name": "Row2",
+      "translation": [
+        -0.04201700538396835,
+        1.167850136756897,
+        -0.024714000523090363
+      ]
+    },
+    {
+      "mesh": 4,
+      "name": "Row3",
+      "translation": [
+        0.23125901818275452,
+        1.1678500175476074,
+        -0.024714000523090363
+      ]
+    },
+    {
+      "name": "Empty",
+      "translation": [
+        -0.48435941338539124,
+        -0.131228968501091,
+        0
+      ]
+    },
+    {
+      "camera": 0,
+      "name": "Camera",
+      "rotation": [
+        0.7071067690849304,
+        0,
+        0,
+        0.7071067690849304
+      ],
+      "translation": [
+        0,
+        -12,
+        0
+      ]
+    }
+  ],
+  "cameras": [
+    {
+      "name": "Camera",
+      "perspective": {
+        "yfov": 0.39959652046304894,
+        "zfar": 1000,
+        "znear": 0.10000000149011612
+      },
+      "type": "perspective"
+    }
+  ],
+  "materials": [
+    {
+      "alphaCutoff": 0.5,
+      "alphaMode": "MASK",
+      "doubleSided": true,
+      "name": "Material.002",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0,
+          "texCoord": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Material.004",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1,
+          "texCoord": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 0
+      }
+    },
+    {
+      "name": "Material.003",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 2,
+          "texCoord": 0
+        },
+        "metallicFactor": 0,
+        "roughnessFactor": 1
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Plane",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "Plane.015",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "Plane.001",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 2
+        }
+      ]
+    },
+    {
+      "name": "Plane.002",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 11,
+          "material": 2
+        }
+      ]
+    },
+    {
+      "name": "Plane.003",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 15,
+            "NORMAL": 16,
+            "TEXCOORD_0": 17
+          },
+          "indices": 11,
+          "material": 2
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "source": 0
+    },
+    {
+      "source": 1
+    },
+    {
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "name": "SlotMachineTest",
+      "uri": "slotscene_img0.png"
+    },
+    {
+      "name": "Black",
+      "uri": "slotscene_img1.png"
+    },
+    {
+      "name": "Row3",
+      "uri": "slotscene_img2.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 8,
+      "max": [
+        1,
+        1,
+        0
+      ],
+      "min": [
+        -1,
+        -1,
+        0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 8,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 8,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 12,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 24,
+      "max": [
+        2.6822290420532227,
+        2.7384397983551025,
+        -0.004714000038802624
+      ],
+      "min": [
+        -2.660837411880493,
+        -2.3781697750091553,
+        -0.004714012145996094
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        0.13750000298023224,
+        1.434999942779541,
+        0
+      ],
+      "min": [
+        -0.13750001788139343,
+        -1.434999942779541,
+        0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 6,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        0.13750000298023224,
+        1.4439998865127563,
+        0
+      ],
+      "min": [
+        -0.13750001788139343,
+        -1.4439998865127563,
+        0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5126,
+      "count": 4,
+      "max": [
+        0.13750001788139343,
+        1.434999942779541,
+        0
+      ],
+      "min": [
+        -0.13750001788139343,
+        -1.434999942779541,
+        0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 4,
+      "type": "VEC2"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 96,
+      "byteOffset": 0
+    },
+    {
+      "buffer": 0,
+      "byteLength": 96,
+      "byteOffset": 96
+    },
+    {
+      "buffer": 0,
+      "byteLength": 64,
+      "byteOffset": 192
+    },
+    {
+      "buffer": 0,
+      "byteLength": 24,
+      "byteOffset": 256
+    },
+    {
+      "buffer": 0,
+      "byteLength": 288,
+      "byteOffset": 280
+    },
+    {
+      "buffer": 0,
+      "byteLength": 288,
+      "byteOffset": 568
+    },
+    {
+      "buffer": 0,
+      "byteLength": 192,
+      "byteOffset": 856
+    },
+    {
+      "buffer": 0,
+      "byteLength": 72,
+      "byteOffset": 1048
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 1120
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 1168
+    },
+    {
+      "buffer": 0,
+      "byteLength": 32,
+      "byteOffset": 1216
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12,
+      "byteOffset": 1248
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 1260
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 1308
+    },
+    {
+      "buffer": 0,
+      "byteLength": 32,
+      "byteOffset": 1356
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 1388
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48,
+      "byteOffset": 1436
+    },
+    {
+      "buffer": 0,
+      "byteLength": 32,
+      "byteOffset": 1484
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "slotscene_data.bin",
+      "byteLength": 1516
+    }
+  ]
+}
