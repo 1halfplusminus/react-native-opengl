@@ -12,6 +12,7 @@
     "expo-font": "8.0.0",
     "expo-gl": "8.0.0",
     "expo-gl-cpp": "8.0.0",
+    "fp-ts": "^2.2.0",
     "react": "16.9.0",
     "react-native": "0.61.5",
     "react-native-unimodules": "^0.7.0",
