@@ -1,32 +1,39 @@
 import {Scene, Object3D} from 'three';
-import {
-  createContext,
-  PropsWithChildren,
-  useContext,
-  useCallback,
-  useRef,
-} from 'react';
+import {createContext, useContext, useEffect, useState} from 'react';
 import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
-import React from 'react';
 
-const defaultProps = {
+export const defaultProps = {
   scene: option.none as option.Option<Scene>,
 };
 
-type SceneProps = {
+export type SceneProps = {
   scene: option.Option<Scene>;
 } & typeof defaultProps;
 
-declare type SceneContext = {
+export declare type SceneContext = {
   scene: option.Option<Scene>;
+  loaded: boolean;
 };
 
-const SceneContext = createContext<SceneContext>({
-  scene: option.none,
+export const SceneContext = createContext<SceneContext>({
+  ...defaultProps,
+  loaded: false,
 });
+
+export const useInit = (cb: () => void) => {
+  const {isNone} = useScene();
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (!isNone && !loaded) {
+      cb();
+      setLoaded(true);
+    }
+  }, [isNone]);
+};
 export const useScene = () => {
-  const {scene} = useContext(SceneContext);
+  const context = useContext(SceneContext);
+  const {scene} = context;
   const getObjectByName = (name: string) =>
     pipe(
       scene,
@@ -51,25 +58,13 @@ export const useScene = () => {
         s => callback(s),
       ),
     );
+
   return {
     fold,
     getObjectByName,
     foldObjectByName,
     isNone: option.isNone(scene),
+    scene: context.scene,
+    loaded: !option.isNone(scene),
   };
 };
-export const SceneProvider = ({
-  children,
-  scene,
-}: PropsWithChildren<SceneProps>) => {
-  return (
-    <SceneContext.Provider
-      value={{
-        scene: scene,
-      }}>
-      {children}
-    </SceneContext.Provider>
-  );
-};
-
-SceneProvider.defaultProps = defaultProps;

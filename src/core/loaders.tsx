@@ -2,11 +2,12 @@ import {useRef, useEffect, useMemo, useState, useCallback} from 'react';
 import {GLTFLoader, GLTF} from 'three/examples/jsm/loaders/GLTFLoader';
 import {LoadingManager, Object3D, Scene} from 'three';
 import {Asset} from 'react-native-unimodules';
-import ExpoTextureLoader from './TextureLoader';
+import ExpoTextureLoader from './textureLoader';
 import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
 import * as taskEither from 'fp-ts/lib/TaskEither';
 import * as either from 'fp-ts/lib/Either';
+import {useStateRef} from './hook';
 
 export const loadGLFT = (moduleId: number) => {
   return taskEither.tryCatch<Error, GLTF>(
@@ -65,7 +66,7 @@ export const useGLTF = (moduleId: number) => {
       ),
     [loaded],
   );
-  const isNone = useMemo(() => option.isNone(gltf.current), [loaded]);
+  const isNone = option.isNone(gltf.current);
   return {
     fold: fold,
     scene: scene.current,

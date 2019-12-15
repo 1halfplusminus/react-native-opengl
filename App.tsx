@@ -8,101 +8,164 @@
  * @format
  */
 
-import React, {useRef, useEffect, forwardRef} from 'react';
-import {PerspectiveCamera, SpotLight, Scene, Vector} from 'three';
-import {useCanvas, useRender, Canvas, useFrame} from './src/src/core/canvas';
-import {useGLTF, loadGLFT} from './src/src/core/loaders';
+import React, {useRef, useEffect} from 'react';
+import {PerspectiveCamera, SpotLight, Vector} from 'three';
+import {useCanvas, mapRenderer, mapGL} from './src/core/canvas';
+import {useGLTF} from './src/core/loaders';
 import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
-import {SceneProvider, useScene} from './src/src/core/Scene';
-import {View} from 'react-native';
+import {useScene} from './src/core/scene';
+import {useGame} from './src/features/game/hook';
+import {useWheels} from './src/components/wheel/useWheel';
+import {Hud} from './src/components/hud/hud';
+import {YellowBox} from 'react-native';
+import {Canvas} from './src/core/components/canvas';
+import {SceneProvider} from './src/core/components/scene';
+import {PerspectiveCameraProvider} from './src/core/components/camera';
+import {SlotMachineGL} from './src/components/slotmachinegl/slotmachinegl';
+import {Provider} from 'react-redux';
+import store from './src/app/store';
+import {SceneRenderer} from './src/core/components/render';
+YellowBox.ignoreWarnings([
+  'ode of type atrule not supported as an inline style',
+  'Node of type rule not supported as an inline style',
+  '',
+]);
 
-const MainScene = () => {
-  const {height, width, renderer} = useCanvas();
-  const {current: camera} = useRef(
-    new PerspectiveCamera(45, width / height, 1, 1000),
-  );
-  const {current: spotLight} = useRef(new SpotLight(0xffffff));
-  const {fold, isNone, getObjectByName} = useGLTF(require('./slotscene.gltf'));
-  useFrame(() => {
-    pipe(
-      getObjectByName('Row1'),
-      option.fold(
-        () => {},
-        r => {
-          r.position.x += 0.1;
-        },
-      ),
-    );
-  });
-  useEffect(() => {
-    fold(glft => {
-      camera.position.z = 3;
-      camera.position.x = -0.01;
-      spotLight.position.x = 20;
-      spotLight.position.y = 50;
-      spotLight.position.z = 100;
-      glft.scene.add(spotLight);
-    });
-  }, [isNone]);
-  useRender(() => {
-    fold(glft => {
-      renderer.render(glft.scene, camera);
-    });
-  });
-  return <></>;
-};
 type SubType<Base, Condition> = Pick<
   Base,
   {
     [Key in keyof Base]: Base[Key] extends Condition ? Key : never;
   }[keyof Base]
 >;
-const Camera = () => {
-  const {renderer, height, width} = useCanvas();
-  const {current: camera} = useRef(new PerspectiveCamera(45, width / height));
-  const {fold, isNone} = useScene();
-  useRender(() => {
+/* const SceneRenderer = () => {
+  const {renderer, endFrame} = useCanvas();
+  const {camera} = useCamera();
+  const {fold, scene} = useScene();
+  const {animate, endAnimate} = useAnimationFrame();
+  const renderScene = () =>
     fold(scene => {
-      renderer.render(scene, camera);
+      mapRenderer(renderer)(renderer => {
+        mapCamera(camera => {
+          logOnce();
+          renderer.render(scene, camera);
+          endFrame();
+        });
+      });
     });
-  }, [isNone]);
+
+  const mapCamera = (cb: (camera: THREE.Camera) => void) =>
+    pipe(camera, option.map(cb));
+  const logOnce = once(() => {});
   useEffect(() => {
     fold(scene => {
-      camera.position.z = 3;
-      camera.position.x = -0.01;
-      scene.add(camera);
+      mapCamera(camera => {
+        camera.position.z = 3;
+        camera.position.x = -0.01;
+        scene.add(camera);
+        console.log('add camera');
+      });
     });
-  }, [isNone]);
+    return () => {
+      fold(scene => {
+        mapCamera(camera => {
+          console.log('remove camera');
+          scene.remove(camera);
+        });
+      });
+    };
+  }, [option.isNone(camera), option.isNone(scene)]);
+  useEffect(() => {
+    animate(renderScene);
+    return () => {
+      endAnimate();
+    };
+  }, []);
   return <></>;
-};
+}; */
 const Light = (
   props: Partial<SubType<SpotLight, string | number | Vector>>,
 ) => {
   const {current: spotLight} = useRef(new SpotLight(0xffffff));
   const {fold, isNone} = useScene();
   useEffect(() => {
-    if (!isNone) {
+    fold(scene => {
+      spotLight.position.x = 20;
+      spotLight.position.y = 50;
+      spotLight.position.z = 100;
+      scene.add(spotLight);
+    });
+    return () => {
       fold(scene => {
-        spotLight.position.x = 20;
-        spotLight.position.y = 50;
-        spotLight.position.z = 100;
-        scene.add(spotLight);
+        scene.remove(spotLight);
       });
-    }
+    };
   }, [isNone]);
   return <></>;
 };
 const App = () => {
-  const {scene} = useGLTF(require('./slotscene.gltf'));
+  const {scene, getObjectByName} = useGLTF(require('./slotscene.gltf'));
+  const {rolls, rollFinished, rolling, loading, start} = useGame();
+  const wheels = useWheels({
+    wheels: {
+      0: 0,
+      1: 0,
+      2: 0,
+    },
+    onRollFinish: () => {
+      rollFinished();
+    },
+    rolls,
+    rolling,
+    loading,
+  });
+  const {bind} = wheels;
   return (
     <Canvas>
       <SceneProvider scene={scene}>
-        <Camera />
+        <PerspectiveCameraProvider>
+          <SceneRenderer>
+            <SlotMachineGL
+              wheels={[bind(0), bind(1), bind(2)]}
+              rows={[
+                getObjectByName('Row1'),
+                getObjectByName('Row2'),
+                getObjectByName('Row3'),
+              ]}
+            />
+          </SceneRenderer>
+        </PerspectiveCameraProvider>
         <Light />
       </SceneProvider>
+      <Hud
+        start={() => {
+          if (!loading && !rolling) {
+            start();
+          }
+        }}
+      />
     </Canvas>
   );
 };
 
-export default App;
+const TestApp = () => {
+  const {scene} = useGLTF(require('./slotscene.gltf'));
+  return (
+    <Canvas>
+      <SceneProvider scene={scene}>
+        <PerspectiveCameraProvider>
+          <SceneRenderer />
+          <Light />
+        </PerspectiveCameraProvider>
+      </SceneProvider>
+    </Canvas>
+  );
+};
+const ConnectedApp = () => {
+  return (
+    <Provider store={store}>
+      <App />
+    </Provider>
+  );
+};
+export default ConnectedApp;
