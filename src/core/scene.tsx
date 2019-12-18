@@ -32,8 +32,8 @@ export const useInit = (cb: () => void) => {
   }, [isNone]);
 };
 export const useScene = () => {
-  const context = useContext(SceneContext);
-  const {scene} = context;
+  const {scene} = useContext(SceneContext);
+  const map = (cb: (scene: Scene) => void) => pipe(scene, option.map(cb));
   const getObjectByName = (name: string) =>
     pipe(
       scene,
@@ -58,13 +58,18 @@ export const useScene = () => {
         s => callback(s),
       ),
     );
-
+  const add = (...object: Object3D[]) => {
+    return map(s => {
+      s.add(...object);
+    });
+  };
   return {
     fold,
     getObjectByName,
     foldObjectByName,
     isNone: option.isNone(scene),
-    scene: context.scene,
+    scene: scene,
     loaded: !option.isNone(scene),
+    add,
   };
 };

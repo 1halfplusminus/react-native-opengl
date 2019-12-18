@@ -3,14 +3,16 @@ import {GLView, ExpoWebGLRenderingContext} from 'expo-gl';
 import * as THREE from 'three';
 import * as option from 'fp-ts/lib/Option';
 import {CanvasContext, defaultContext} from '../canvas';
-
+import {WebGLRenderer, Scene} from 'three';
 export const Canvas = ({children}: PropsWithChildren<{}>) => {
-  const [needUpdate, setNeedUpdate] = useState(false);
-  const ref = useRef<
-    Pick<CanvasContext, 'gl' | 'height' | 'width' | 'renderer'> & {
-      time?: number;
-    }
-  >(defaultContext);
+  const [size, setSize] = useState({height: 0, width: 0});
+  const [gl, setGL] = useState<option.Option<ExpoWebGLRenderingContext>>(
+    option.none,
+  );
+  const [renderer, setRenderer] = useState<option.Option<WebGLRenderer>>(
+    option.none,
+  );
+
   const onContextCreate = (
     gl: ExpoWebGLRenderingContext & {
       drawingBufferWidth: number;
@@ -31,21 +33,22 @@ export const Canvas = ({children}: PropsWithChildren<{}>) => {
     });
     renderer.setPixelRatio(1);
     renderer.setSize(width, height);
-    renderer.setClearColor(0xffffff, 1);
-    ref.current = {
-      gl: option.some(gl),
-      width,
-      height,
-      renderer: option.some(renderer),
-    };
-    setNeedUpdate(true);
+    renderer.setClearColor(0x000000, 1);
+    setSize({height: height, width: width});
+
+    setGL(option.some(gl));
+    setRenderer(option.some(renderer));
+    console.log('context created');
   };
   return (
     <>
       <GLView style={{flex: 1}} onContextCreate={onContextCreate} />
       <CanvasContext.Provider
         value={{
-          ...ref.current,
+          gl: gl,
+          height: size.height,
+          width: size.width,
+          renderer: renderer,
         }}>
         {children}
       </CanvasContext.Provider>

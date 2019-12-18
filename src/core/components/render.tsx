@@ -9,26 +9,20 @@ import {pipe} from 'fp-ts/lib/pipeable';
 import * as option from 'fp-ts/lib/Option';
 
 import React, {useEffect, PropsWithChildren, useState, useRef} from 'react';
-import {useRender, RendererContext} from '../render';
+import {useRender, RendererContext, useAnimationFrame} from '../render';
 
-const Renderer = () => {
-  const {renderer, endFrame} = useCanvas();
-  const {fold, scene} = useScene();
-  const {camera, map} = useCamera();
-  const renderScene = () =>
-    fold(scene => {
-      mapRenderer(renderer)(renderer => {
-        map(camera => {
-          renderer.render(scene, camera);
-          endFrame();
-        });
-      });
-    });
-  useRender(renderScene);
-  return <></>;
+const Renderer = ({children}: PropsWithChildren<{}>) => {
+  const {renderer, endFrame, gl, render} = useCanvas();
+  const {scene} = useScene();
+  const {camera} = useCamera();
+  const renderScene = () => {
+    render(scene, camera);
+    endFrame();
+  };
+  useRender(renderScene, [scene, camera, gl, renderer]);
+  return <>{children}</>;
 };
 export const SceneRenderer = ({children}: PropsWithChildren<{}>) => {
-  const [needUpdate, setNeedUpdate] = useState(false);
   const {camera, map} = useCamera();
   const {fold, scene} = useScene();
   const refSubscribers = useRef<UseFrameCallback[]>([]);
@@ -36,23 +30,28 @@ export const SceneRenderer = ({children}: PropsWithChildren<{}>) => {
     fold(scene => {
       map(camera => {
         scene.add(camera);
-        setNeedUpdate(true);
       });
     });
     return () => {
       fold(scene => {
         map(camera => {
           scene.remove(camera);
-          setNeedUpdate(true);
         });
       });
     };
-  }, [option.isNone(camera), option.isNone(scene)]);
-
+  }, [camera, scene]);
   return (
-    <RendererContext.Provider value={{subscribers: refSubscribers.current}}>
-      <Renderer />
-      {children}
+    <RendererContext.Provider
+      value={{
+        subscribers: refSubscribers.current,
+        push: cb => {
+          refSubscribers.current.push(cb);
+        },
+        reset: () => {
+          refSubscribers.current.splice(0, refSubscribers.current.length);
+        },
+      }}>
+      <Renderer key="renderer">{children}</Renderer>
     </RendererContext.Provider>
   );
 };

@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import {Platform} from 'react-native';
 import {Asset} from 'expo-asset';
-
+import {getEmbeddedAssetUri} from 'expo-asset/src/EmbeddedAssets';
+import URLParse from 'url-parse';
+//@ts-ignore
+import * as THREEModule from 'three/build/three.module';
+import {FileSystem} from 'react-native-unimodules';
 // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
 function formatFromURI(uri: string) {
   const isJPEG =
@@ -30,16 +34,14 @@ export default class ExpoTextureLoader extends THREE.TextureLoader {
     const loader = new THREE.ImageLoader(this.manager);
     loader.setCrossOrigin(this.crossOrigin);
     loader.setPath(this.path);
-
     (async () => {
-      await Asset.fromModule(asset).downloadAsync();
-      const nativeAsset = Asset.fromModule(asset);
-
+      const nativeAsset: Asset = THREEModule.Cache.get(asset);
+      console.log(nativeAsset);
       function parseAsset(image: any) {
         texture.image = image;
 
         // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
-        texture.format = formatFromURI(nativeAsset.localUri!);
+        texture.format = formatFromURI(nativeAsset.uri);
         texture.needsUpdate = true;
 
         if (onLoad !== undefined) {
@@ -48,20 +50,22 @@ export default class ExpoTextureLoader extends THREE.TextureLoader {
       }
 
       if (Platform.OS === 'web') {
-        loader.load(
+        /*   loader.load(
           nativeAsset.localUri!,
           image => {
             parseAsset(image);
           },
           onProgress,
           onError,
-        );
+        ); */
       } else {
         texture['isDataTexture'] = true; // Forces passing to `gl.texImage2D(...)` verbatim
         texture.minFilter = THREE.LinearFilter; // Pass-through non-power-of-two
-
+        const localUri = `${FileSystem.cacheDirectory}ExponentAsset-${nativeAsset.hash}.${nativeAsset.type}`;
         parseAsset({
-          data: nativeAsset,
+          data: {
+            localUri: localUri,
+          },
           width: nativeAsset.width,
           height: nativeAsset.height,
         });

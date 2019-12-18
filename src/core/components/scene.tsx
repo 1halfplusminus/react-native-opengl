@@ -5,18 +5,25 @@ import {SceneProps, SceneContext, defaultProps} from '../scene';
 
 export const SceneProvider = ({
   children,
-  scene,
+  scene: defaultScene,
 }: PropsWithChildren<SceneProps>) => {
   const [loaded, setLoaded] = useState();
+  const [scene, setScene] = useState(defaultScene);
   useEffect(() => {
     if (!option.isNone(scene)) {
       setLoaded(true);
     }
   }, [option.isNone(scene)]);
+  useEffect(() => {
+    setScene(scene);
+  }, [scene]);
+  useEffect(() => {
+    setScene(defaultScene);
+  }, [defaultScene]);
   return (
     <SceneContext.Provider
       value={{
-        scene: scene ? scene : option.none,
+        scene,
         loaded: loaded,
       }}>
       {children}

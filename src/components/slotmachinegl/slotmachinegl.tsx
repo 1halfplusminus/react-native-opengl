@@ -174,7 +174,7 @@ const Row = ({
     );
   };
   const isFinish = () => turn >= goTo.numberOfTurn && symbol === goTo.value;
-  const animateRolling = () =>
+  const animateRolling: UseFrameCallback = ({delta}) =>
     pipe(
       someRow,
       option.fold(
@@ -195,7 +195,7 @@ const Row = ({
         },
       ),
     );
-  const loadingAnimation = () => {
+  const loadingAnimation: UseFrameCallback = ({delta}) => {
     if (loading && !rolling) {
       rollAtSpeed(speed);
     }
@@ -211,8 +211,8 @@ const Row = ({
       requestAnimationFrame(loadingAnimation);
     }
   }, [loading, rollInBetween]); */
-  useFrame(loadingAnimation, [loading, rollInBetween]);
-  useFrame(animateRolling, [rollInBetween, rolling]);
+  useFrame(loadingAnimation, [loading]);
+  useFrame(animateRolling, [rolling]);
   useEffect(() => {
     if (rolling) {
       setTurn(0);
@@ -234,7 +234,7 @@ export interface SlotMachineProps {
   rows: Array<option.Option<THREE.Object3D>>;
 }
 export const SlotMachineGL = ({wheels, rows}: SlotMachineProps) => {
-  const {camera, map} = useCamera(c => {
+  useCamera(c => {
     c.position.z = 2;
     c.position.x = -0.01;
   });

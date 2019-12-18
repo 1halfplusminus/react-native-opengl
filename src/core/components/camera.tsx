@@ -15,33 +15,38 @@ import {PixelRatio} from 'react-native';
 export const PerspectiveCameraProvider = ({
   children,
 }: PropsWithChildren<{}>) => {
-  const [needUpdate, setNeedUpdate] = useState(false);
-  const camera = useRef<option.Option<PerspectiveCamera>>(
-    option.some(new PerspectiveCamera(45, 1)),
+  const {height, width} = useCanvas();
+  const [camera, setCamera] = useState<option.Option<PerspectiveCamera>>(
+    option.none,
   );
   const {fold, loaded} = useScene();
   const mapCamera = (cb: (camera: PerspectiveCamera) => void) =>
-    pipe(camera.current, option.map(cb));
-
+    pipe(camera, option.map(cb));
   useEffect(() => {
-    console.log(PixelRatio.get());
     fold(scene => {
       mapCamera(camera => {
         scene.add(camera);
-        setNeedUpdate(true);
       });
     });
     return () => {
       fold(scene => {
         mapCamera(camera => {
           scene.remove(camera);
-          setNeedUpdate(true);
         });
       });
     };
   }, [loaded]);
+  useEffect(() => {
+    console.log('change camera');
+    setCamera(
+      option.some(new PerspectiveCamera(75, width / height, 0.1, 1000)),
+    );
+  }, [height, width]);
+  useEffect(() => {
+    setCamera(camera);
+  }, [camera]);
   return (
-    <CameraContext.Provider value={{camera: camera.current}}>
+    <CameraContext.Provider value={{camera: camera}}>
       {children}
     </CameraContext.Provider>
   );

@@ -1,4 +1,13 @@
 {
   "name": "AwesomeTSProject",
-  "displayName": "AwesomeTSProject"
+  "displayName": "AwesomeTSProject",
+  "expo": {
+    "assetBundlePatterns": ["**/*"],
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "packagerOpts": {
+      "assetExts": []
+    }
+  }
 }

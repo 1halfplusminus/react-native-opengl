@@ -6,6 +6,7 @@ import {
   useState,
   useImperativeHandle,
   useRef,
+  useCallback,
 } from 'react';
 import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
@@ -28,18 +29,33 @@ export const CameraContext = createContext<CameraContext>({
 });
 
 export const useCamera = (cb?: (camera: Camera) => void) => {
-  const [needUpdate, setNeedUpdate] = useState(false);
   const context = useContext(CameraContext);
-  const {current: map} = useRef((cb: <T>(camera: Camera) => T | void) =>
-    pipe(context.camera, option.map(cb)),
-  );
+  const [needUpdate, setNeedUpdate] = useState(false);
+  const map = (cb: <T>(camera: Camera) => T | void) =>
+    pipe(
+      context.camera,
+      option.map(c => {
+        cb(c);
+        setNeedUpdate(true);
+      }),
+    );
+  function fold<T>(cb: (camera: Camera) => T) {
+    pipe(
+      context.camera,
+      option.fold(
+        () => {},
+        c => {
+          cb(c);
+        },
+      ),
+    );
+  }
   useEffect(() => {
     if (!option.isNone(context.camera)) {
       if (cb) {
         console.log('in use use effect useCamera');
         map(c => {
           cb(c);
-          setNeedUpdate(true);
           console.log('after update', c.position.x, c.position.z);
         });
       }
@@ -52,5 +68,7 @@ export const useCamera = (cb?: (camera: Camera) => void) => {
     getCamera: () => {
       return context.camera;
     },
+    fold: fold,
+    update: needUpdate,
   };
 };

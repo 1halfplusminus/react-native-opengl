@@ -6,6 +6,8 @@ import {
   useRef,
   useState,
   useLayoutEffect,
+  DependencyList,
+  useCallback,
 } from 'react';
 import * as option from 'fp-ts/lib/Option';
 import {useCanvas, UseFrameCallback} from './canvas';
@@ -20,14 +22,18 @@ export type RendererProps = {
 
 export declare type RendererContext = {
   subscribers: Array<UseFrameCallback>;
+  push: (cb: UseFrameCallback) => void;
+  reset: () => void;
 };
 
 export const RendererContext = createContext<RendererContext>({
   ...defaultProps,
+  push: () => {},
+  reset: () => {},
 });
 
 export const useFrame = (cb: UseFrameCallback, deps: any[] = []) => {
-  const {subscribers} = useContext(RendererContext);
+  const {subscribers, push} = useContext(RendererContext);
   useEffect(() => {
     subscribers.push(cb);
     return () => {
@@ -39,14 +45,18 @@ export const useFrame = (cb: UseFrameCallback, deps: any[] = []) => {
 export const useAnimationFrame = () => {
   const requestId = useRef<number>(0);
   const timeRef = useRef(0);
-  const {subscribers} = useContext(RendererContext);
+  const {subscribers, reset} = useContext(RendererContext);
   const [timeFrame, setTimeFrame] = useState(0);
   const animate = (cb: UseFrameCallback) => (t: number) => {
     const delta = timeRef.current ? (t - timeRef.current) / 1000 : 0;
     timeRef.current = t;
-    subscribers.forEach((sub, index) => {
+    var i = subscribers.length;
+    while (i--) {
+      subscribers[i]({delta: delta});
+    }
+    /*   subscribers.forEach((sub, index) => {
       sub({delta});
-    });
+    }); */
     cb({delta});
     setTimeFrame(t);
   };
@@ -54,16 +64,18 @@ export const useAnimationFrame = () => {
     animate: (cb: UseFrameCallback) => requestAnimationFrame(animate(cb)),
     endAnimate: () => cancelAnimationFrame(requestId.current),
     timeFrame,
+    subscribers,
   };
 };
-export const useRender = (cb: UseFrameCallback) => {
+export const useRender = (cb: UseFrameCallback, deps: DependencyList = []) => {
   const {animate, endAnimate, timeFrame} = useAnimationFrame();
-  const {subscribers} = useContext(RendererContext);
   useEffect(() => {
     animate(cb);
-    subscribers.slice(0, subscribers.length);
     return () => {
       endAnimate();
     };
   }, [timeFrame]);
+  return {
+    animate: () => animate(cb),
+  };
 };

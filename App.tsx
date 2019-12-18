@@ -9,9 +9,9 @@
  */
 
 import React, {useRef, useEffect} from 'react';
-import {PerspectiveCamera, SpotLight, Vector} from 'three';
+import {PerspectiveCamera, SpotLight, Vector, AmbientLight} from 'three';
 import {useCanvas, mapRenderer, mapGL} from './src/core/canvas';
-import {useGLTF} from './src/core/loaders';
+import {useGLTF, cacheAssets} from './src/core/loaders';
 import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
 import {useScene} from './src/core/scene';
@@ -26,6 +26,7 @@ import {SlotMachineGL} from './src/components/slotmachinegl/slotmachinegl';
 import {Provider} from 'react-redux';
 import store from './src/app/store';
 import {SceneRenderer} from './src/core/components/render';
+import {TestTree} from './src/example/tree-fiber';
 YellowBox.ignoreWarnings([
   'ode of type atrule not supported as an inline style',
   'Node of type rule not supported as an inline style',
@@ -86,7 +87,7 @@ type SubType<Base, Condition> = Pick<
 const Light = (
   props: Partial<SubType<SpotLight, string | number | Vector>>,
 ) => {
-  const {current: spotLight} = useRef(new SpotLight(0xffffff));
+  const {current: spotLight} = useRef(new AmbientLight(0xffffff));
   const {fold, isNone} = useScene();
   useEffect(() => {
     fold(scene => {
@@ -104,7 +105,28 @@ const Light = (
   return <></>;
 };
 const App = () => {
-  const {scene, getObjectByName} = useGLTF(require('./slotscene.gltf'));
+  const {scene, getObjectByName} = useGLTF('./slotscene.gltf', [
+    {
+      path: './slotscene.gltf',
+      moduleId: require('./slotscene.gltf'),
+    },
+    {
+      path: './slotscene_img2.png',
+      moduleId: require('./slotscene_img2.png'),
+    },
+    {
+      path: './slotscene_img1.png',
+      moduleId: require('./slotscene_img1.png'),
+    },
+    {
+      path: './slotscene_img0.png',
+      moduleId: require('./slotscene_img0.png'),
+    },
+    {
+      path: './slotscene_data.bin',
+      moduleId: require('./slotscene_data.bin'),
+    },
+  ]);
   const {rolls, rollFinished, rolling, loading, start} = useGame();
   const wheels = useWheels({
     wheels: {
@@ -137,18 +159,20 @@ const App = () => {
         </PerspectiveCameraProvider>
         <Light />
       </SceneProvider>
-      <Hud
-        start={() => {
-          if (!loading && !rolling) {
-            start();
-          }
-        }}
-      />
+      {
+        <Hud
+          start={() => {
+            if (!loading && !rolling) {
+              start();
+            }
+          }}
+        />
+      }
     </Canvas>
   );
 };
 
-const TestApp = () => {
+/* const TestApp = () => {
   const {scene} = useGLTF(require('./slotscene.gltf'));
   return (
     <Canvas>
@@ -160,7 +184,7 @@ const TestApp = () => {
       </SceneProvider>
     </Canvas>
   );
-};
+}; */
 const ConnectedApp = () => {
   return (
     <Provider store={store}>
