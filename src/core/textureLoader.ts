@@ -36,7 +36,6 @@ export default class ExpoTextureLoader extends THREE.TextureLoader {
     loader.setPath(this.path);
     (async () => {
       const nativeAsset: Asset = THREEModule.Cache.get(asset);
-      console.log(nativeAsset);
       function parseAsset(image: any) {
         texture.image = image;
 

@@ -7,9 +7,7 @@ export const defaultProps = {
   scene: option.none as option.Option<Scene>,
 };
 
-export type SceneProps = {
-  scene: option.Option<Scene>;
-} & typeof defaultProps;
+export type SceneProps = {} & typeof defaultProps;
 
 export declare type SceneContext = {
   scene: option.Option<Scene>;

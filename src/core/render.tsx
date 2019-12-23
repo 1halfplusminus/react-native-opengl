@@ -1,19 +1,19 @@
-import {Renderer} from 'three';
+import {Renderer, Scene} from 'three';
 import {
   createContext,
   useContext,
   useEffect,
   useRef,
   useState,
-  useLayoutEffect,
   DependencyList,
-  useCallback,
 } from 'react';
 import * as option from 'fp-ts/lib/Option';
-import {useCanvas, UseFrameCallback} from './canvas';
+import {UseFrameCallback} from './canvas';
+import {map} from './scene/map';
 
 export const defaultProps = {
   subscribers: [],
+  scene: option.some(new Scene()),
 };
 
 export type RendererProps = {
@@ -22,18 +22,16 @@ export type RendererProps = {
 
 export declare type RendererContext = {
   subscribers: Array<UseFrameCallback>;
-  push: (cb: UseFrameCallback) => void;
-  reset: () => void;
+  scene: option.Option<Scene>;
 };
 
 export const RendererContext = createContext<RendererContext>({
   ...defaultProps,
-  push: () => {},
-  reset: () => {},
+  scene: option.some(new Scene()),
 });
 
 export const useFrame = (cb: UseFrameCallback, deps: any[] = []) => {
-  const {subscribers, push} = useContext(RendererContext);
+  const {subscribers} = useContext(RendererContext);
   useEffect(() => {
     subscribers.push(cb);
     return () => {
@@ -45,7 +43,7 @@ export const useFrame = (cb: UseFrameCallback, deps: any[] = []) => {
 export const useAnimationFrame = () => {
   const requestId = useRef<number>(0);
   const timeRef = useRef(0);
-  const {subscribers, reset} = useContext(RendererContext);
+  const {subscribers} = useContext(RendererContext);
   const [timeFrame, setTimeFrame] = useState(0);
   const animate = (cb: UseFrameCallback) => (t: number) => {
     const delta = timeRef.current ? (t - timeRef.current) / 1000 : 0;
@@ -54,9 +52,6 @@ export const useAnimationFrame = () => {
     while (i--) {
       subscribers[i]({delta: delta});
     }
-    /*   subscribers.forEach((sub, index) => {
-      sub({delta});
-    }); */
     cb({delta});
     setTimeFrame(t);
   };
@@ -77,5 +72,16 @@ export const useRender = (cb: UseFrameCallback, deps: DependencyList = []) => {
   }, [timeFrame]);
   return {
     animate: () => animate(cb),
+  };
+};
+
+export const useRendererScene = (cb: (scene: Scene) => void = () => {}) => {
+  const {scene} = useContext(RendererContext);
+  useEffect(() => {
+    map(scene)(cb);
+  }, [scene]);
+  return {
+    scene,
+    isSome: option.isSome(scene),
   };
 };

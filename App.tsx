@@ -9,24 +9,21 @@
  */
 
 import React, {useRef, useEffect} from 'react';
-import {PerspectiveCamera, SpotLight, Vector, AmbientLight} from 'three';
-import {useCanvas, mapRenderer, mapGL} from './src/core/canvas';
-import {useGLTF, cacheAssets} from './src/core/loaders';
+import {SpotLight, Vector, AmbientLight} from 'three';
 import * as option from 'fp-ts/lib/Option';
-import {pipe} from 'fp-ts/lib/pipeable';
-import {useScene} from './src/core/scene';
 import {useGame} from './src/features/game/hook';
 import {useWheels} from './src/components/wheel/useWheel';
 import {Hud} from './src/components/hud/hud';
 import {YellowBox} from 'react-native';
-import {Canvas} from './src/core/components/canvas';
-import {SceneProvider} from './src/core/components/scene';
-import {PerspectiveCameraProvider} from './src/core/components/camera';
+import {Canvas} from './src/core/containers/canvas';
+import {PerspectiveCameraProvider} from './src/core/containers/camera';
 import {SlotMachineGL} from './src/components/slotmachinegl/slotmachinegl';
 import {Provider} from 'react-redux';
 import store from './src/app/store';
-import {SceneRenderer} from './src/core/components/render';
-import {TestTree} from './src/example/tree-fiber';
+import {SceneRenderer} from './src/core/containers/render';
+import {useRendererScene} from './src/core/render';
+import addOption from './src/core/scene/addOption';
+import removeOption from './src/core/scene/removeOptions';
 YellowBox.ignoreWarnings([
   'ode of type atrule not supported as an inline style',
   'Node of type rule not supported as an inline style',
@@ -88,45 +85,16 @@ const Light = (
   props: Partial<SubType<SpotLight, string | number | Vector>>,
 ) => {
   const {current: spotLight} = useRef(new AmbientLight(0xffffff));
-  const {fold, isNone} = useScene();
+  const {scene, isSome} = useRendererScene();
   useEffect(() => {
-    fold(scene => {
-      spotLight.position.x = 20;
-      spotLight.position.y = 50;
-      spotLight.position.z = 100;
-      scene.add(spotLight);
-    });
+    addOption(scene)(option.some(spotLight));
     return () => {
-      fold(scene => {
-        scene.remove(spotLight);
-      });
+      removeOption(scene)(option.some(spotLight));
     };
-  }, [isNone]);
+  }, [isSome]);
   return <></>;
 };
 const App = () => {
-  const {scene, getObjectByName} = useGLTF('./slotscene.gltf', [
-    {
-      path: './slotscene.gltf',
-      moduleId: require('./slotscene.gltf'),
-    },
-    {
-      path: './slotscene_img2.png',
-      moduleId: require('./slotscene_img2.png'),
-    },
-    {
-      path: './slotscene_img1.png',
-      moduleId: require('./slotscene_img1.png'),
-    },
-    {
-      path: './slotscene_img0.png',
-      moduleId: require('./slotscene_img0.png'),
-    },
-    {
-      path: './slotscene_data.bin',
-      moduleId: require('./slotscene_data.bin'),
-    },
-  ]);
   const {rolls, rollFinished, rolling, loading, start} = useGame();
   const wheels = useWheels({
     wheels: {
@@ -144,21 +112,13 @@ const App = () => {
   const {bind} = wheels;
   return (
     <Canvas>
-      <SceneProvider scene={scene}>
-        <PerspectiveCameraProvider>
-          <SceneRenderer>
-            <SlotMachineGL
-              wheels={[bind(0), bind(1), bind(2)]}
-              rows={[
-                getObjectByName('Row1'),
-                getObjectByName('Row2'),
-                getObjectByName('Row3'),
-              ]}
-            />
-          </SceneRenderer>
-        </PerspectiveCameraProvider>
-        <Light />
-      </SceneProvider>
+      <PerspectiveCameraProvider>
+        <SceneRenderer>
+          <Light />
+          <SlotMachineGL wheels={[bind(0), bind(1), bind(2)]} />
+        </SceneRenderer>
+      </PerspectiveCameraProvider>
+
       {
         <Hud
           start={() => {

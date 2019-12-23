@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import React, {useEffect, useRef, useState} from 'react';
-import {Canvas} from '../core/components/canvas';
-import {SceneProvider} from '../core/components/scene';
-import {PerspectiveCameraProvider} from '../core/components/camera';
-import {SceneRenderer} from '../core/components/render';
+import {Canvas} from '../core/containers/canvas';
+import {SceneProvider} from '../core/containers/scene';
+import {PerspectiveCameraProvider} from '../core/containers/camera';
+import {SceneRenderer} from '../core/containers/render';
 import {
   Light,
   Scene,
@@ -18,12 +18,10 @@ import {useCanvas} from '../core/canvas';
 import {useScene} from '../core/scene';
 import {useCamera} from '../core/camera';
 
-let subscribers: Array<() => void> = [];
-
 function TorusKnot() {
   const {render, endFrame, gl, renderer} = useCanvas();
   const {scene, fold} = useScene();
-  const {camera, map, fold: foldCamera, update} = useCamera();
+  const {camera, map} = useCamera();
   let ref = useRef<THREE.Mesh>(
     new Mesh(
       new TorusKnotBufferGeometry(10, 3, 100, 16),

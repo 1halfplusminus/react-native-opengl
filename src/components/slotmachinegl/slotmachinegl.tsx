@@ -1,21 +1,11 @@
 import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useLayoutEffect,
-} from 'react';
-import {useGroup} from '../../core/three';
-import {useInit, useScene} from '../../core/scene';
-import debonce from 'lodash/debounce';
-import {useSelector} from 'react-redux';
-import {RootState} from '../../app/rootReducer';
-import {math} from 'polished';
+import React, {useEffect, useState} from 'react';
 import {useCamera} from '../../core/camera';
-import {useFrame} from '../../core/render';
+import {useFrame, useRendererScene} from '../../core/render';
 import {UseFrameCallback} from '../../core/canvas';
+import {Mesh} from '../../core/components/Object3D';
+import {useGLTF} from '../../core/loaders';
 
 export interface WheelProps {
   index: number;
@@ -226,21 +216,48 @@ const Row = ({
       }),
     );
   }, [value, option.isSome(someRow)]);
-  return <></>;
+  return <Mesh object={someRow} />;
 };
 
 export interface SlotMachineProps {
   wheels: WheelProps[];
-  rows: Array<option.Option<THREE.Object3D>>;
 }
-export const SlotMachineGL = ({wheels, rows}: SlotMachineProps) => {
+export const SlotMachineGL = ({wheels}: SlotMachineProps) => {
   useCamera(c => {
     c.position.z = 2;
     c.position.x = -0.01;
   });
+  const {scene, getObjectByName} = useGLTF('./slotscene.gltf', [
+    {
+      path: './slotscene.gltf',
+      moduleId: require('./slotscene.gltf'),
+    },
+    {
+      path: './slotscene_img2.png',
+      moduleId: require('./slotscene_img2.png'),
+    },
+    {
+      path: './slotscene_img1.png',
+      moduleId: require('./slotscene_img1.png'),
+    },
+    {
+      path: './slotscene_img0.png',
+      moduleId: require('./slotscene_img0.png'),
+    },
+    {
+      path: './slotscene_data.bin',
+      moduleId: require('./slotscene_data.bin'),
+    },
+  ]);
   return (
     <>
-      {rows.map((r, index) => {
+      <Mesh object={getObjectByName('SlotMachine')} />
+      <Mesh object={getObjectByName('Background')} />
+      {[
+        getObjectByName('Row1'),
+        getObjectByName('Row2'),
+        getObjectByName('Row3'),
+      ].map((r, index) => {
         return <Row row={r} wheel={wheels[index]} />;
       })}
     </>

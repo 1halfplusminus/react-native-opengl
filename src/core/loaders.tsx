@@ -13,7 +13,7 @@ import URLParse from 'url-parse';
 import * as mime from 'react-native-mime-types';
 //@ts-ignore
 import * as THREEModule from 'three/build/three.module';
-import {decode, encode} from 'base-64';
+import {decode} from 'base-64';
 
 const mines: {[key: string]: string} = {
   gltf: 'application/json',
@@ -103,12 +103,13 @@ export const loadGLFT = (path: string) => {
   )();
 };
 export const useGLTF = (path: string, assets: AssetList) => {
-  const gltf = useRef<option.Option<GLTF>>(option.none);
-  const scene = useRef<option.Option<Scene>>(option.none);
+  const [gltf, setGlft] = useState<option.Option<GLTF>>(option.none);
+  const [scene, setScene] = useState<option.Option<Scene>>(option.none);
   const [loaded, setLoaded] = useState(false);
+  const [object3D, setObject3D] = useState<{[key: string]: Object3D}>({});
   const fold = (callback: (glft: GLTF) => void) =>
     pipe(
-      gltf.current,
+      gltf,
       option.fold(
         () => {},
         glft => callback(glft),
@@ -121,8 +122,15 @@ export const useGLTF = (path: string, assets: AssetList) => {
           pipe(
             r,
             either.map(loaded => {
-              gltf.current = option.some(loaded);
-              scene.current = option.some(loaded.scene);
+              loaded.scene.children;
+              setGlft(option.some(loaded));
+              setScene(option.some(loaded.scene));
+              setObject3D(
+                loaded.scene.children.reduce((acc, object) => {
+                  acc[object.name] = object;
+                  return acc;
+                }, {} as {[key: string]: Object3D}),
+              );
               setLoaded(true);
               clearAssets(assets);
             }),
@@ -131,20 +139,20 @@ export const useGLTF = (path: string, assets: AssetList) => {
       });
     }
   }, [loaded]);
-  const getObjectByName = useCallback(
-    (name: string) =>
-      pipe(
-        gltf.current,
-        option.map(glft => glft.scene),
-        option.map(scene => option.fromNullable(scene.getObjectByName(name))),
-        option.chain(o => o),
-      ),
-    [loaded],
-  );
-  const isNone = option.isNone(gltf.current);
+  const getObjectByName = (name: string) =>
+    pipe(
+      object3D,
+      a => {
+        return a;
+      },
+      object3D => option.fromNullable(object3D[name]),
+      /*       option.map(scene => option.fromNullable(scene.getObjectByName(name))),
+  option.chain(o => o), */
+    );
+  const isNone = option.isNone(gltf);
   return {
     fold: fold,
-    scene: scene.current,
+    scene,
     isNone,
     getObjectByName: getObjectByName,
     foldObjectByName: (name: string) => (
