@@ -2,27 +2,50 @@ import React from 'react';
 import styled, {css} from 'styled-components';
 import {Box} from '../core/box';
 import {Button} from '../core/button';
-import {Text} from '../core/text';
 import {View} from 'react-native';
+import * as option from 'fp-ts/lib/Option';
+import {Object3D} from 'three';
+import {use3DPopper} from '../../core/utils';
 
 export interface HudProps {
   start: () => void;
+  getObjectByName: (name: string) => option.Option<Object3D>;
 }
-export const Hud = ({start}: HudProps) => {
+const PlayButton = styled(Button)`
+  border-radius: 100px;
+  :hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+`;
+export const Hud = ({start, getObjectByName}: HudProps) => {
+  const {css} = use3DPopper({
+    object: getObjectByName('Empty'),
+    mapPosition: ({x, y}) => ({x: x + 3, y}),
+    height: 59,
+    width: 95,
+  });
+
   return (
     <View>
       <UpperLeft />
       <UpperRight></UpperRight>
       <LowerLeft />
 
-      <LowerRight justifyContent="center" alignItems="center" container={true}>
+      <LowerLeft justifyContent="center" alignItems="center" container={true}>
         <Button
           title={'Jouer'}
           onPress={() => {
             start();
           }}
         />
-      </LowerRight>
+      </LowerLeft>
+      {/*   <PlayButton
+        title=""
+        onPress={() => {
+          start();
+        }}
+        css={css}
+      /> */}
     </View>
   );
 };
@@ -63,8 +86,7 @@ const UpperRight = styled(Box)`
 const LowerLeft = styled(Box)`
   ${base}
   bottom: 5px;
-  left: 50px;
-  transform: skew(-5deg, -10deg);
+  left: 0px;
   width: 200px;
   & > h1 {
     margin: 0;
@@ -73,17 +95,13 @@ const LowerLeft = styled(Box)`
     margin: 0;
   }
   @media only screen and (max-width: 900px) {
-    bottom: 30px;
-    & > h1 {
-    }
-    & > h2 {
-    }
+    bottom: 5px;
   }
 `;
 
 const LowerRight = styled(Box)`
   ${base}
-  bottom: 70px;
+  bottom: 5px;
   right: 50px;
   @media only screen and (max-width: 900px) {
     bottom: 50px;

@@ -2,10 +2,10 @@ import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
 import React, {useEffect, useState} from 'react';
 import {useCamera} from '../../core/camera';
-import {useFrame, useRendererScene} from '../../core/render';
+import {useFrame} from '../../core/render';
 import {UseFrameCallback} from '../../core/canvas';
 import {Mesh} from '../../core/components/Object3D';
-import {useGLTF} from '../../core/loaders';
+import {Camera, Math, Object3D} from 'three';
 
 export interface WheelProps {
   index: number;
@@ -218,37 +218,18 @@ const Row = ({
   }, [value, option.isSome(someRow)]);
   return <Mesh object={someRow} />;
 };
-
+const initNotZoomed = (c: Camera) => {
+  c.position.z = 0.83;
+  c.position.x = -0.04;
+  c.position.y = 0.25;
+  c.rotation.x = Math.degToRad(5);
+};
 export interface SlotMachineProps {
   wheels: WheelProps[];
+  getObjectByName: (name: string) => option.Option<Object3D>;
 }
-export const SlotMachineGL = ({wheels}: SlotMachineProps) => {
-  useCamera(c => {
-    c.position.z = 2;
-    c.position.x = -0.01;
-  });
-  const {scene, getObjectByName} = useGLTF('./slotscene.gltf', [
-    {
-      path: './slotscene.gltf',
-      moduleId: require('./slotscene.gltf'),
-    },
-    {
-      path: './slotscene_img2.png',
-      moduleId: require('./slotscene_img2.png'),
-    },
-    {
-      path: './slotscene_img1.png',
-      moduleId: require('./slotscene_img1.png'),
-    },
-    {
-      path: './slotscene_img0.png',
-      moduleId: require('./slotscene_img0.png'),
-    },
-    {
-      path: './slotscene_data.bin',
-      moduleId: require('./slotscene_data.bin'),
-    },
-  ]);
+export const SlotMachineGL = ({wheels, getObjectByName}: SlotMachineProps) => {
+  useCamera(initNotZoomed);
   return (
     <>
       <Mesh object={getObjectByName('SlotMachine')} />

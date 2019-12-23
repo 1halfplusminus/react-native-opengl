@@ -8,7 +8,6 @@ import removeOption from '../scene/removeOptions';
 export const Mesh = ({object}: {object: option.Option<Object3D>}) => {
   const {scene} = useRendererScene();
   useEffect(() => {
-    console.log(scene._tag, object._tag);
     addOption(scene)(object);
     return () => {
       removeOption(scene)(object);

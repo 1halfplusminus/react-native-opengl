@@ -1,9 +1,12 @@
-import React, {PropsWithChildren, useState} from 'react';
+import React, {PropsWithChildren, useState, useEffect} from 'react';
 import {GLView, ExpoWebGLRenderingContext} from 'expo-gl';
 import * as THREE from 'three';
 import * as option from 'fp-ts/lib/Option';
 import {CanvasContext} from '../canvas';
-import {WebGLRenderer} from 'three';
+import {WebGLRenderer, PerspectiveCamera} from 'three';
+import {ScaledSize, Dimensions} from 'react-native';
+import {height} from 'styled-system';
+import {pipe} from 'fp-ts/lib/pipeable';
 
 export const Canvas = ({children}: PropsWithChildren<{}>) => {
   const [size, setSize] = useState({height: 0, width: 0});
@@ -40,6 +43,29 @@ export const Canvas = ({children}: PropsWithChildren<{}>) => {
     setRenderer(option.some(renderer));
     console.log('context created');
   };
+  useEffect(() => {
+    const handler = ({
+      window,
+      screen,
+    }: {
+      window: ScaledSize;
+      screen: ScaledSize;
+    }) => {
+      setSize({height: window.height, width: window.width});
+    };
+    Dimensions.addEventListener('change', handler);
+    return () => {
+      Dimensions.removeEventListener('change', handler);
+    };
+  }, [gl]);
+  useEffect(() => {
+    pipe(
+      renderer,
+      option.map(r => {
+        r.setSize(size.width, size.height);
+      }),
+    );
+  }, [size]);
   return (
     <>
       <GLView style={{flex: 1}} onContextCreate={onContextCreate} />

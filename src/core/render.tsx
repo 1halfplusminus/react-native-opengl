@@ -42,12 +42,11 @@ export const useFrame = (cb: UseFrameCallback, deps: any[] = []) => {
 };
 export const useAnimationFrame = () => {
   const requestId = useRef<number>(0);
-  const timeRef = useRef(0);
   const {subscribers} = useContext(RendererContext);
   const [timeFrame, setTimeFrame] = useState(0);
+
   const animate = (cb: UseFrameCallback) => (t: number) => {
-    const delta = timeRef.current ? (t - timeRef.current) / 1000 : 0;
-    timeRef.current = t;
+    const delta = timeFrame ? (t - timeFrame) / 1000 : 0;
     var i = subscribers.length;
     while (i--) {
       subscribers[i]({delta: delta});

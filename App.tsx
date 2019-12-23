@@ -24,6 +24,9 @@ import {SceneRenderer} from './src/core/containers/render';
 import {useRendererScene} from './src/core/render';
 import addOption from './src/core/scene/addOption';
 import removeOption from './src/core/scene/removeOptions';
+import Orientation from 'react-native-orientation-locker';
+import {useGLTF} from './src/core/loaders';
+
 YellowBox.ignoreWarnings([
   'ode of type atrule not supported as an inline style',
   'Node of type rule not supported as an inline style',
@@ -87,20 +90,44 @@ const Light = (
   const {current: spotLight} = useRef(new AmbientLight(0xffffff));
   const {scene, isSome} = useRendererScene();
   useEffect(() => {
-    addOption(scene)(option.some(spotLight));
+    if (isSome) {
+      addOption(scene)(option.some(spotLight));
+    }
     return () => {
       removeOption(scene)(option.some(spotLight));
     };
-  }, [isSome]);
+  }, [option.isSome(scene)]);
   return <></>;
 };
 const App = () => {
+  const {scene, getObjectByName} = useGLTF('./slotscene.gltf', [
+    {
+      path: './slotscene.gltf',
+      moduleId: require('./src/components/slotmachinegl/slotscene.gltf'),
+    },
+    {
+      path: './slotscene_img2.png',
+      moduleId: require('./src/components/slotmachinegl/slotscene_img2.png'),
+    },
+    {
+      path: './slotscene_img1.png',
+      moduleId: require('./src/components/slotmachinegl/slotscene_img1.png'),
+    },
+    {
+      path: './slotscene_img0.png',
+      moduleId: require('./src/components/slotmachinegl/slotscene_img0.png'),
+    },
+    {
+      path: './slotscene_data.bin',
+      moduleId: require('./src/components/slotmachinegl/slotscene_data.bin'),
+    },
+  ]);
   const {rolls, rollFinished, rolling, loading, start} = useGame();
   const wheels = useWheels({
     wheels: {
       0: 0,
-      1: 0,
-      2: 0,
+      1: 1,
+      2: 2,
     },
     onRollFinish: () => {
       rollFinished();
@@ -115,12 +142,16 @@ const App = () => {
       <PerspectiveCameraProvider>
         <SceneRenderer>
           <Light />
-          <SlotMachineGL wheels={[bind(0), bind(1), bind(2)]} />
+          <SlotMachineGL
+            getObjectByName={getObjectByName}
+            wheels={[bind(0), bind(1), bind(2)]}
+          />
         </SceneRenderer>
       </PerspectiveCameraProvider>
 
       {
         <Hud
+          getObjectByName={getObjectByName}
           start={() => {
             if (!loading && !rolling) {
               start();
@@ -146,6 +177,10 @@ const App = () => {
   );
 }; */
 const ConnectedApp = () => {
+  /*   Orientation.lockToLandscape(); */
+  useEffect(() => {
+    Orientation.lockToLandscape();
+  }, []);
   return (
     <Provider store={store}>
       <App />

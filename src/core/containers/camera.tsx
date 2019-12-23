@@ -4,7 +4,6 @@ import {PerspectiveCamera} from 'three';
 import * as option from 'fp-ts/lib/Option';
 import {CameraContext} from '../camera';
 import {useRendererScene} from '../render';
-import addOption from '../scene/addOption';
 import removeOption from '../scene/removeOptions';
 
 export const PerspectiveCameraProvider = ({
@@ -14,21 +13,17 @@ export const PerspectiveCameraProvider = ({
   const [camera, setCamera] = useState<option.Option<PerspectiveCamera>>(
     option.none,
   );
-  const {scene, isSome} = useRendererScene();
+  const {scene} = useRendererScene();
   useEffect(() => {
-    addOption(scene)(camera);
-    return () => {
-      removeOption(scene)(camera);
-    };
-  }, [scene, camera]);
-  useEffect(() => {
+    console.log('new camera', height, width);
+    removeOption(scene)(camera);
     setCamera(
       option.some(new PerspectiveCamera(75, width / height, 0.1, 1000)),
     );
   }, [height, width]);
-  useEffect(() => {
+  /*   useEffect(() => {
     setCamera(camera);
-  }, [camera]);
+  }, [camera]); */
   return (
     <CameraContext.Provider value={{camera: camera}}>
       {children}

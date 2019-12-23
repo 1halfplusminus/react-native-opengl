@@ -9,16 +9,17 @@ import {
 } from '../render';
 import addOption from '../scene/addOption';
 import {SceneProps} from '../scene';
+import removeOption from '../scene/removeOptions';
 
 const Renderer = ({children}: PropsWithChildren<{}>) => {
-  const {renderer, endFrame, gl, render} = useCanvas();
+  const {renderer, endFrame, gl, render, width, height} = useCanvas();
   const {scene} = useRendererScene();
   const {camera} = useCamera();
   const renderScene = () => {
     render(scene, camera);
     endFrame();
   };
-  useRender(renderScene, [scene, camera, gl, renderer]);
+  useRender(renderScene, [scene, camera, gl, renderer, width, height]);
   return <>{children}</>;
 };
 export const SceneRenderer = ({
@@ -29,9 +30,10 @@ export const SceneRenderer = ({
   const [scene, setScene] = useState(defaultScene);
   const refSubscribers = useRef<UseFrameCallback[]>([]);
   useEffect(() => {
+    console.log('add new camera');
     addOption(scene)(camera);
     return () => {
-      addOption(scene)(camera);
+      removeOption(scene)(camera);
     };
   }, [camera, scene, defaultScene]);
   useEffect(() => {
