@@ -2,10 +2,22 @@ import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
 import React, {useEffect, useState} from 'react';
 import {useCamera} from '../../core/camera';
-import {useFrame} from '../../core/render';
+import {useFrame, useRendererScene} from '../../core/render';
 import {UseFrameCallback} from '../../core/canvas';
-import {Mesh} from '../../core/components/Object3D';
-import {Camera, Math, Object3D} from 'three';
+import {MeshComponent} from '../../core/components/Object3D';
+import {
+  Camera,
+  Math,
+  Object3D,
+  Vector3,
+  SphereBufferGeometry,
+  MeshBasicMaterial,
+  Mesh,
+  SphereGeometry,
+  Sphere,
+} from 'three';
+import addOption from '../../core/scene/addOption';
+import removeOption from '../../core/scene/removeOptions';
 
 export interface WheelProps {
   index: number;
@@ -216,13 +228,14 @@ const Row = ({
       }),
     );
   }, [value, option.isSome(someRow)]);
-  return <Mesh object={someRow} />;
+  return <MeshComponent object={someRow} />;
 };
 const initNotZoomed = (c: Camera) => {
   c.position.z = 0.83;
   c.position.x = -0.04;
   c.position.y = 0.25;
   c.rotation.x = Math.degToRad(5);
+  c.updateMatrixWorld();
 };
 export interface SlotMachineProps {
   wheels: WheelProps[];
@@ -232,8 +245,9 @@ export const SlotMachineGL = ({wheels, getObjectByName}: SlotMachineProps) => {
   useCamera(initNotZoomed);
   return (
     <>
-      <Mesh object={getObjectByName('SlotMachine')} />
-      <Mesh object={getObjectByName('Background')} />
+      <MeshComponent object={getObjectByName('SlotMachine')} />
+      <MeshComponent object={getObjectByName('Background')} />
+      <Button object={getObjectByName('Empty')} />
       {[
         getObjectByName('Row1'),
         getObjectByName('Row2'),
@@ -243,4 +257,32 @@ export const SlotMachineGL = ({wheels, getObjectByName}: SlotMachineProps) => {
       })}
     </>
   );
+};
+
+export const Button = ({object}: {object: option.Option<Object3D>}) => {
+  const {scene} = useRendererScene();
+  const [sphere] = useState(
+    new Mesh(
+      new SphereGeometry(0.1, 32, 32),
+      new MeshBasicMaterial({color: 0xffff00}),
+    ),
+  );
+  useEffect(() => {
+    pipe(
+      object,
+      option.map(o => {
+        const vector = o.position.clone();
+        sphere.position.x = vector.x;
+        sphere.position.y = vector.y;
+        sphere.position.y = vector.z;
+        addOption(scene)(option.some(sphere));
+      }),
+    );
+    addOption(scene)(object);
+    return () => {
+      removeOption(scene)(object);
+      removeOption(scene)(option.some(sphere));
+    };
+  }, [scene, object]);
+  return <></>;
 };

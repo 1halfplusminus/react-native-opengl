@@ -146,19 +146,16 @@ const App = () => {
             getObjectByName={getObjectByName}
             wheels={[bind(0), bind(1), bind(2)]}
           />
+          <Hud
+            getObjectByName={getObjectByName}
+            start={() => {
+              if (!loading && !rolling) {
+                start();
+              }
+            }}
+          />
         </SceneRenderer>
       </PerspectiveCameraProvider>
-
-      {
-        <Hud
-          getObjectByName={getObjectByName}
-          start={() => {
-            if (!loading && !rolling) {
-              start();
-            }
-          }}
-        />
-      }
     </Canvas>
   );
 };

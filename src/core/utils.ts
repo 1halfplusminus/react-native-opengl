@@ -1,33 +1,35 @@
-import {Object3D} from 'three';
+import {Object3D, Vector3, Raycaster} from 'three';
 import {pipe} from 'fp-ts/lib/pipeable';
 import {useCanvas} from './canvas';
 import {useCamera} from './camera';
 import * as option from 'fp-ts/lib/Option';
-import {useMemo, useCallback, useState, useEffect} from 'react';
+import {useMemo, useCallback} from 'react';
+import {ViewStyle} from 'react-native';
 
 export function screenXY({
-  position3D,
+  object,
   camera,
   width,
   height,
 }: {
-  position3D: THREE.Vector3;
+  object: THREE.Object3D;
   camera: THREE.Camera;
   width: number;
   height: number;
 }) {
-  const vector = position3D.clone();
+  const vector = new Vector3();
+  vector.setFromMatrixPosition(object.matrixWorld);
   const windowWidth = width;
 
   const widthHalf = windowWidth / 2;
   const heightHalf = height / 2;
-
+  camera.updateMatrixWorld();
   vector.project(camera);
 
   vector.x = vector.x * widthHalf + widthHalf;
   vector.y = -(vector.y * heightHalf) + heightHalf;
   vector.z = 0;
-
+  console.log(vector);
   return vector;
 }
 
@@ -41,60 +43,53 @@ export const useObject3DPosition = ({
 }: UseObject3DPositionProps) => {
   const {height, width} = useCanvas();
   const {map, camera} = useCamera();
-  const [position, setPosition] = useState<
-    option.Option<{x: number; y: number}>
-  >(option.none);
-  const getPositions = () =>
-    pipe(
-      object,
-      option.map(o => {
-        console.log(o.position, camera);
-        return o.position;
-      }),
-      option.chain(p =>
-        map(camera => screenXY({position3D: p, camera, height, width})),
-      ),
-      option.map(v => ({x: v.x, y: v.y})),
-    );
-  useEffect(() => {
-    setPosition(getPositions());
-    console.log(
+  const getPositions = useCallback(
+    () =>
       pipe(
-        position,
+        object,
+        option.map(o => o),
+        option.chain(o =>
+          map(camera => screenXY({object: o, camera, height, width})),
+        ),
+        option.map(v => ({x: v.x, y: v.y})),
+      ),
+    [object, camera, height, width],
+  );
+  const css = useMemo(
+    () =>
+      pipe(
+        getPositions(),
         option.map(mapPosition),
         option.fold(
           () => ``,
           position => `
-          position: absolute;
-          top: ${position.y}px;
-          left: ${position.x}px;
-          z-index: 99999;
-        `,
+            position: absolute;
+            top: ${position.y}px;
+            left: ${position.x}px;
+            z-index: 99999;
+          `,
         ),
       ),
-    );
-  }, [object, camera]);
+    [camera],
+  );
+  const style = useMemo(
+    () =>
+      pipe(
+        getPositions(),
+        option.map(mapPosition),
+        option.fold(
+          () => ({top: 0, left: 0}),
+          position => ({
+            top: position.y,
+            left: position.x,
+          }),
+        ),
+      ),
+    [camera, height, width],
+  );
   return {
-    position: position,
-    style: () =>
-      pipe(
-        position,
-        option.map(position => ({top: position.y, left: position.x})),
-      ),
-    css: () =>
-      pipe(
-        position,
-        option.map(mapPosition),
-        option.fold(
-          () => ``,
-          position => `
-          position: absolute;
-          top: ${position.y}px;
-          left: ${position.x}px;
-          z-index: 99999;
-        `,
-        ),
-      ),
+    style,
+    css,
   };
 };
 
@@ -104,20 +99,38 @@ export const use3DPopper = ({
   width,
   mapPosition = p => p,
 }: UseObject3DPositionProps & {height: number; width: number}) => {
-  const {css} = useObject3DPosition({
+  const {css, style} = useObject3DPosition({
     object,
     mapPosition: p =>
       pipe(p, p2 => ({x: p2.x - width / 2, y: p2.y - height / 2}), mapPosition),
   });
-
+  const newCss = useMemo(
+    () =>
+      pipe(
+        css,
+        base => `
+        ${base}
+        height: ${height}px;
+        width: ${width}px;
+      `,
+      ),
+    [],
+  );
+  const newStyle = useMemo(
+    () =>
+      ({
+        height,
+        width,
+        position: 'absolute',
+        zIndex: 9999999,
+        backgroundColor: 'red',
+        top: style.top,
+        left: style.left,
+      } as ViewStyle),
+    [style],
+  );
   return {
-    css: pipe(
-      css(),
-      base => `
-          ${base}
-          height: ${height}px;
-          width: ${width}px;
-        `,
-    ),
+    css: newCss,
+    style: newStyle,
   };
 };

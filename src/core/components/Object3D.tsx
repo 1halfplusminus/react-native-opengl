@@ -5,7 +5,7 @@ import React, {useEffect} from 'react';
 import addOption from '../scene/addOption';
 import removeOption from '../scene/removeOptions';
 
-export const Mesh = ({object}: {object: option.Option<Object3D>}) => {
+export const MeshComponent = ({object}: {object: option.Option<Object3D>}) => {
   const {scene} = useRendererScene();
   useEffect(() => {
     addOption(scene)(object);

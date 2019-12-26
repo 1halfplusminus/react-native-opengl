@@ -17,13 +17,10 @@ export const PerspectiveCameraProvider = ({
   useEffect(() => {
     console.log('new camera', height, width);
     removeOption(scene)(camera);
-    setCamera(
-      option.some(new PerspectiveCamera(75, width / height, 0.1, 1000)),
-    );
+    const newCamera = new PerspectiveCamera(75, width / height, 0.1, 1000);
+    setCamera(option.some(newCamera));
   }, [height, width]);
-  /*   useEffect(() => {
-    setCamera(camera);
-  }, [camera]); */
+
   return (
     <CameraContext.Provider value={{camera: camera}}>
       {children}

@@ -3,9 +3,8 @@ import {GLView, ExpoWebGLRenderingContext} from 'expo-gl';
 import * as THREE from 'three';
 import * as option from 'fp-ts/lib/Option';
 import {CanvasContext} from '../canvas';
-import {WebGLRenderer, PerspectiveCamera} from 'three';
-import {ScaledSize, Dimensions} from 'react-native';
-import {height} from 'styled-system';
+import {WebGLRenderer} from 'three';
+import {ScaledSize, Dimensions, View} from 'react-native';
 import {pipe} from 'fp-ts/lib/pipeable';
 
 export const Canvas = ({children}: PropsWithChildren<{}>) => {
@@ -41,7 +40,6 @@ export const Canvas = ({children}: PropsWithChildren<{}>) => {
     setSize({height: height, width: width});
     setGL(option.some(gl));
     setRenderer(option.some(renderer));
-    console.log('context created');
   };
   useEffect(() => {
     const handler = ({
@@ -62,6 +60,7 @@ export const Canvas = ({children}: PropsWithChildren<{}>) => {
     pipe(
       renderer,
       option.map(r => {
+        console.log(size);
         r.setSize(size.width, size.height);
       }),
     );
