@@ -1,4 +1,4 @@
-import {Camera} from 'three';
+import {Camera, PerspectiveCamera} from 'three';
 import {createContext, useContext, useEffect, useState} from 'react';
 import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
@@ -30,7 +30,11 @@ export const useCamera = (cb?: (camera: Camera) => void) => {
       context.camera,
       option.map(c => {
         setNeedUpdate(true);
-        return cb(c);
+        const result = cb(c);
+        if (c instanceof PerspectiveCamera) {
+          c.updateProjectionMatrix();
+        }
+        return result;
       }),
     );
   }
@@ -51,6 +55,9 @@ export const useCamera = (cb?: (camera: Camera) => void) => {
         console.log('in use use effect useCamera');
         map(c => {
           cb(c);
+          if (c instanceof PerspectiveCamera) {
+            c.updateProjectionMatrix();
+          }
           console.log('after update', c.position.x, c.position.z);
         });
       }

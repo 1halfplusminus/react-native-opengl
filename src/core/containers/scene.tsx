@@ -14,9 +14,9 @@ export const SceneProvider = ({
       setLoaded(true);
     }
   }, [option.isNone(scene)]);
-  useEffect(() => {
+  /*  useEffect(() => {
     setScene(scene);
-  }, [scene]);
+  }, [scene]); */
   useEffect(() => {
     setScene(defaultScene);
   }, [defaultScene]);

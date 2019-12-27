@@ -19,7 +19,7 @@ const Renderer = ({children}: PropsWithChildren<{}>) => {
     render(scene, camera);
     endFrame();
   };
-  useRender(renderScene, [scene, camera, gl, renderer, width, height]);
+  useRender(renderScene, [scene, camera, gl, renderer]);
   return <>{children}</>;
 };
 export const SceneRenderer = ({
@@ -29,19 +29,19 @@ export const SceneRenderer = ({
   const {camera} = useCamera();
   const [scene, setScene] = useState(defaultScene);
   const refSubscribers = useRef<UseFrameCallback[]>([]);
-  useEffect(() => {
+  /*  useEffect(() => {
     console.log('add new camera');
     addOption(scene)(camera);
     return () => {
       removeOption(scene)(camera);
     };
-  }, [camera, scene, defaultScene]);
-  useEffect(() => {
+  }, [camera, scene, defaultScene]); */
+  /* useEffect(() => {
     setScene(scene);
   }, [scene]);
   useEffect(() => {
     setScene(defaultScene);
-  }, [defaultScene]);
+  }, [defaultScene]); */
   return (
     <RendererContext.Provider
       value={{

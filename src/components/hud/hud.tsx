@@ -27,13 +27,13 @@ const PlayButton = styled(TouchableOpacity)`
   }
 `;
 export const Hud = ({start, getObjectByName}: HudProps) => {
-  /* const {style} = use3DPopper({
+  /*   const {style} = use3DPopper({
     object: getObjectByName('Empty'),
-    mapPosition: ({x, y}) => ({x: x + 3, y}),
-    height: 59,
-    width: 95,
+    mapPosition: ({x, y}) => ({x: x + 3, y: y}),
+    height: 50,
+    width: 50,
   }); */
-  /*   console.log(style); */
+
   const {width, height} = useCanvas();
   const {map, camera} = useCamera();
   const {scene} = useRendererScene();
@@ -55,8 +55,10 @@ export const Hud = ({start, getObjectByName}: HudProps) => {
               // calculate objects intersecting the picking ray
               var intersects = raycaster.intersectObjects(scene.children);
               for (var i = 0; i < intersects.length; i++) {
-                start();
-                break;
+                if (intersects[i].object.name === 'play') {
+                  start();
+                  break;
+                }
               }
             }),
           );
@@ -77,11 +79,12 @@ export const Hud = ({start, getObjectByName}: HudProps) => {
         }}>
         <UpperLeft />
         <UpperRight></UpperRight>
-        <TouchableOpacity
+        {/*  <TouchableOpacity
+          style={style}
           onPress={() => {
             start();
           }}
-        />
+        /> */}
       </View>
     </TouchableWithoutFeedback>
   );

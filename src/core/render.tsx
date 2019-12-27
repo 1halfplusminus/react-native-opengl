@@ -69,6 +69,7 @@ export const useRender = (cb: UseFrameCallback, deps: DependencyList = []) => {
       endAnimate();
     };
   }, [timeFrame]);
+
   return {
     animate: () => animate(cb),
   };

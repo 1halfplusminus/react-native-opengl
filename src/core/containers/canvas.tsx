@@ -4,8 +4,6 @@ import * as THREE from 'three';
 import * as option from 'fp-ts/lib/Option';
 import {CanvasContext} from '../canvas';
 import {WebGLRenderer} from 'three';
-import {ScaledSize, Dimensions, View} from 'react-native';
-import {pipe} from 'fp-ts/lib/pipeable';
 
 export const Canvas = ({children}: PropsWithChildren<{}>) => {
   const [size, setSize] = useState({height: 0, width: 0});
@@ -37,11 +35,11 @@ export const Canvas = ({children}: PropsWithChildren<{}>) => {
     renderer.setPixelRatio(1);
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 1);
-    setSize({height: height, width: width});
     setGL(option.some(gl));
     setRenderer(option.some(renderer));
+    console.log('onContextCreate');
   };
-  useEffect(() => {
+  /*  useEffect(() => {
     const handler = ({
       window,
       screen,
@@ -49,25 +47,28 @@ export const Canvas = ({children}: PropsWithChildren<{}>) => {
       window: ScaledSize;
       screen: ScaledSize;
     }) => {
-      setSize({height: window.height, width: window.width});
+      console.log('window', window);
+      console.log('screen', screen);
+      setSize({height: screen.height, width: screen.width});
     };
     Dimensions.addEventListener('change', handler);
     return () => {
       Dimensions.removeEventListener('change', handler);
     };
-  }, [gl]);
-  useEffect(() => {
-    pipe(
-      renderer,
-      option.map(r => {
-        console.log(size);
-        r.setSize(size.width, size.height);
-      }),
-    );
-  }, [size]);
+  }, [gl]); */
+
   return (
     <>
-      <GLView style={{flex: 1}} onContextCreate={onContextCreate} />
+      <GLView
+        style={{flex: 1}}
+        onContextCreate={onContextCreate}
+        onLayout={e => {
+          setSize({
+            height: e.nativeEvent.layout.height,
+            width: e.nativeEvent.layout.width,
+          });
+        }}
+      />
       <CanvasContext.Provider
         value={{
           gl: gl,

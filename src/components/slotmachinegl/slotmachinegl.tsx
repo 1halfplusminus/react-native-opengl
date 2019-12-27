@@ -89,7 +89,6 @@ const useRow = ({
             row.position.y -= speed;
           };
           if (loading || rolling) {
-            console.log('rolling');
             updateOnce();
           }
 
@@ -235,7 +234,6 @@ const initNotZoomed = (c: Camera) => {
   c.position.x = -0.04;
   c.position.y = 0.25;
   c.rotation.x = Math.degToRad(5);
-  c.updateMatrixWorld();
 };
 export interface SlotMachineProps {
   wheels: WheelProps[];
@@ -264,7 +262,7 @@ export const Button = ({object}: {object: option.Option<Object3D>}) => {
   const [sphere] = useState(
     new Mesh(
       new SphereGeometry(0.1, 32, 32),
-      new MeshBasicMaterial({color: 0xffff00}),
+      new MeshBasicMaterial({color: 0xffff00, transparent: true, opacity: 0}),
     ),
   );
   useEffect(() => {
@@ -274,7 +272,9 @@ export const Button = ({object}: {object: option.Option<Object3D>}) => {
         const vector = o.position.clone();
         sphere.position.x = vector.x;
         sphere.position.y = vector.y;
-        sphere.position.y = vector.z;
+        sphere.position.z = vector.z - 0.04;
+        sphere.visible = true;
+        sphere.name = 'play';
         addOption(scene)(option.some(sphere));
       }),
     );

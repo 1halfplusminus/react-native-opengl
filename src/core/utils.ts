@@ -1,4 +1,4 @@
-import {Object3D, Vector3, Raycaster} from 'three';
+import {Object3D, Vector3, PerspectiveCamera} from 'three';
 import {pipe} from 'fp-ts/lib/pipeable';
 import {useCanvas} from './canvas';
 import {useCamera} from './camera';
@@ -23,12 +23,19 @@ export function screenXY({
 
   const widthHalf = windowWidth / 2;
   const heightHalf = height / 2;
-  camera.updateMatrixWorld();
+  if (camera instanceof PerspectiveCamera) {
+    camera.updateProjectionMatrix();
+  }
   vector.project(camera);
+  if (!isNaN(vector.x)) {
+    vector.x = vector.x * widthHalf + widthHalf;
+    vector.y = -(vector.y * heightHalf) + heightHalf;
+    vector.z = 0;
 
-  vector.x = vector.x * widthHalf + widthHalf;
-  vector.y = -(vector.y * heightHalf) + heightHalf;
-  vector.z = 0;
+    return vector;
+  }
+  vector.x = 0;
+  vector.y = 0;
   console.log(vector);
   return vector;
 }
@@ -53,7 +60,7 @@ export const useObject3DPosition = ({
         ),
         option.map(v => ({x: v.x, y: v.y})),
       ),
-    [object, camera, height, width],
+    [object, camera._tag, height, width],
   );
   const css = useMemo(
     () =>
@@ -70,7 +77,7 @@ export const useObject3DPosition = ({
           `,
         ),
       ),
-    [camera],
+    [camera._tag, height, width, object._tag],
   );
   const style = useMemo(
     () =>
@@ -85,7 +92,7 @@ export const useObject3DPosition = ({
           }),
         ),
       ),
-    [camera, height, width],
+    [camera, height, width, object._tag],
   );
   return {
     style,
@@ -104,6 +111,8 @@ export const use3DPopper = ({
     mapPosition: p =>
       pipe(p, p2 => ({x: p2.x - width / 2, y: p2.y - height / 2}), mapPosition),
   });
+  const {height: cHeight, width: cWidth} = useCanvas();
+  const {map, camera} = useCamera();
   const newCss = useMemo(
     () =>
       pipe(
@@ -114,7 +123,7 @@ export const use3DPopper = ({
         width: ${width}px;
       `,
       ),
-    [],
+    [css],
   );
   const newStyle = useMemo(
     () =>
@@ -127,7 +136,7 @@ export const use3DPopper = ({
         top: style.top,
         left: style.left,
       } as ViewStyle),
-    [style],
+    [cHeight, cWidth, object._tag, camera._tag, style],
   );
   return {
     css: newCss,
