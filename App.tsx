@@ -8,24 +8,46 @@
  * @format
  */
 
-import React, {useRef, useEffect} from 'react';
-import {SpotLight, Vector, AmbientLight} from 'three';
+import React, {useRef, useEffect, Suspense, useMemo} from 'react';
+import {SpotLight, Vector, AmbientLight, Scene, Math, Color, Mesh} from 'three';
 import * as option from 'fp-ts/lib/Option';
 import {useGame} from './src/features/game/hook';
 import {useWheels} from './src/components/wheel/useWheel';
 import {Hud} from './src/components/hud/hud';
-import {YellowBox} from 'react-native';
+import {YellowBox, Dimensions} from 'react-native';
 import {Canvas} from './src/core/containers/canvas';
 import {PerspectiveCameraProvider} from './src/core/containers/camera';
-import {SlotMachineGL} from './src/components/slotmachinegl/slotmachinegl';
+import {
+  SlotMachineGL,
+  SlotMachineGLThree,
+} from './src/components/slotmachinegl/slotmachinegl';
 import {Provider} from 'react-redux';
 import store from './src/app/store';
 import {SceneRenderer} from './src/core/containers/render';
-import {useRendererScene} from './src/core/render';
+import {useRendererScene, useFrame, useRender} from './src/core/render';
 import addOption from './src/core/scene/addOption';
 import removeOption from './src/core/scene/removeOptions';
 import Orientation from 'react-native-orientation-locker';
 import {useGLTF} from './src/core/loaders';
+import {
+  Canvas as ThreeFiberCanvas,
+  useFrame as useFrameThree,
+  useCamera as useCameraThree,
+  useThree,
+  extend,
+  useRender as useRenderThree,
+} from 'react-three-fiber';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+
+//@ts-ignore
+window.performance = {
+  //@ts-ignore
+  ...window.performance,
+  clearMarks() {},
+  measure() {},
+  clearMeasures() {},
+  mark() {},
+};
 
 YellowBox.ignoreWarnings([
   'ode of type atrule not supported as an inline style',
@@ -178,15 +200,92 @@ const App = () => {
     </Canvas>
   );
 }; */
-const ConnectedApp = () => {
+export const Controls = (props: Partial<OrbitControls>) => {
+  const {gl, camera} = useThree();
+  const ref = useRef(
+    Object.assign(new OrbitControls(camera, gl.domElement), props),
+  );
+  useFrameThree(() => {
+    ref.current.update();
+  });
+  return <></>;
+};
+
+const ThreeApp = () => {
   /*   Orientation.lockToLandscape(); */
+  const {scene, getObjectByName} = useGLTF('./slotscene.gltf', [
+    {
+      path: './slotscene.gltf',
+      moduleId: require('./src/components/slotmachinegl/slotscene.gltf'),
+    },
+    {
+      path: './slotscene_img2.png',
+      moduleId: require('./src/components/slotmachinegl/slotscene_img2.png'),
+    },
+    {
+      path: './slotscene_img1.png',
+      moduleId: require('./src/components/slotmachinegl/slotscene_img1.png'),
+    },
+    {
+      path: './slotscene_img0.png',
+      moduleId: require('./src/components/slotmachinegl/slotscene_img0.png'),
+    },
+    {
+      path: './slotscene_data.bin',
+      moduleId: require('./src/components/slotmachinegl/slotscene_data.bin'),
+    },
+  ]);
+  const {rolls, rollFinished, rolling, loading, start} = useGame();
+  const wheels = useWheels({
+    wheels: {
+      0: 0,
+      1: 1,
+      2: 2,
+    },
+    onRollFinish: () => {
+      rollFinished();
+    },
+    rolls,
+    rolling,
+    loading,
+  });
+  const {bind} = wheels;
+  return (
+    <>
+      <ThreeFiberCanvas
+        onPointerMissed={() => {
+          console.log('missed');
+        }}>
+        <ambientLight color={new Color(0xffffff)} />
+        <SlotMachineGLThree
+          wheels={[bind(0), bind(1), bind(2)]}
+          start={() => {
+            if (!loading && !rolling) {
+              start();
+            }
+          }}
+          getObjectByName={getObjectByName}
+        />
+      </ThreeFiberCanvas>
+      {/*    <Hud
+        getObjectByName={getObjectByName}
+        start={() => {
+          if (!loading && !rolling) {
+            start();
+          }
+        }}
+      /> */}
+    </>
+  );
+};
+const App2 = () => {
   useEffect(() => {
     Orientation.lockToLandscape();
   }, []);
   return (
     <Provider store={store}>
-      <App />
+      <ThreeApp />
     </Provider>
   );
 };
-export default ConnectedApp;
+export default App2;

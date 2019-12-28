@@ -122,7 +122,6 @@ export const useGLTF = (path: string, assets: AssetList) => {
           pipe(
             r,
             either.map(loaded => {
-              loaded.scene.children;
               setGlft(option.some(loaded));
               setScene(option.some(loaded.scene));
               setObject3D(

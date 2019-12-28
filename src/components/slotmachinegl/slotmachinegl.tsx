@@ -1,6 +1,6 @@
 import * as option from 'fp-ts/lib/Option';
 import {pipe} from 'fp-ts/lib/pipeable';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {useCamera} from '../../core/camera';
 import {useFrame, useRendererScene} from '../../core/render';
 import {UseFrameCallback} from '../../core/canvas';
@@ -18,6 +18,13 @@ import {
 } from 'three';
 import addOption from '../../core/scene/addOption';
 import removeOption from '../../core/scene/removeOptions';
+import {
+  Canvas as ThreeFiberCanvas,
+  useFrame as useFrameThree,
+  useCamera as useCameraThree,
+  useThree,
+  useUpdate,
+} from 'react-three-fiber';
 
 export interface WheelProps {
   index: number;
@@ -69,7 +76,7 @@ const useRow = ({
   const [turn, setTurn] = useState(0);
   const [symbol, setSymbol] = useState(0);
   const [finished, setFinished] = useState(false);
-  useFrame(() => {
+  useFrameThree(() => {
     pipe(
       someRow,
       option.fold(
@@ -209,24 +216,15 @@ const Row = ({
       rollAtSpeed(speed);
     }
   };
-  /*   useEffect(() => {
-    if (rolling) {
-      requestAnimationFrame(animateRolling);
-    }
-  }, [rolling, rollInBetween]);
 
-  useEffect(() => {
-    if (loading) {
-      requestAnimationFrame(loadingAnimation);
-    }
-  }, [loading, rollInBetween]); */
   useFrame(loadingAnimation, [rolling, loading]);
-  /*   useFrame(animateRolling); */
+
   useEffect(() => {
     if (rolling) {
       setTurn(0);
     }
   }, [rolling]);
+
   useEffect(() => {
     pipe(
       someRow,
@@ -235,6 +233,7 @@ const Row = ({
       }),
     );
   }, [value, option.isSome(someRow)]);
+
   return <MeshComponent object={someRow} />;
 };
 const initNotZoomed = (c: Camera) => {
@@ -267,6 +266,148 @@ export const SlotMachineGL = ({
         return <Row row={r} wheel={wheels[index]} />;
       })}
     </>
+  );
+};
+
+export const OptionMesh = ({object}: {object: option.Option<Object3D>}) => {
+  return pipe(
+    object,
+    option.fold(
+      () => null,
+      o => <primitive object={o} />,
+    ),
+  );
+};
+export const SlotMachineGLThreeRow = ({
+  row: someRow,
+  wheel: {goTo, value, onFinish, rolling, loading},
+}: {
+  row: option.Option<THREE.Object3D>;
+  wheel: WheelProps;
+}) => {
+  const {current: symbols} = useRef([
+    1.16785,
+    0.90785,
+    0.60785,
+    0.30785,
+    0.02785,
+    -0.27215,
+    -0.54215,
+    -0.85215,
+  ]);
+  const {current: lastSymbol} = useRef(() => {
+    return symbols[symbols.length - 1];
+  });
+  const turn = useRef(0);
+  const symbol = useRef(0);
+  const {current: speed} = useRef(0.07);
+  const {current: rollAtSpeed} = useRef((speed: number) => {
+    pipe(
+      someRow,
+      option.map(row => {
+        if (row.position.y <= lastSymbol()) {
+          row.position.y = symbols[0] - speed;
+          turn.current += 1;
+          symbol.current = 0;
+          return;
+        }
+        if (row.position.y < symbols[symbol.current + 1]) {
+          row.position.y = symbols[symbol.current + 1] - speed;
+          symbol.current += 1;
+          return;
+        }
+        row.position.y -= speed;
+      }),
+    );
+  });
+  const {current: isFinish} = useRef(
+    () => turn.current >= goTo.numberOfTurn && symbol.current === goTo.value,
+  );
+  const {current: setRowPosition} = useRef((value: number) =>
+    pipe(
+      someRow,
+      option.map(r => {
+        r.position.y = value;
+      }),
+    ),
+  );
+  const loadingAnimation = () => {
+    if (loading || rolling) {
+      if (rolling && isFinish()) {
+        if (onFinish) {
+          setRowPosition(symbols[goTo.value]);
+          onFinish(goTo.value);
+        }
+        return;
+      }
+      rollAtSpeed(speed);
+    }
+  };
+  useFrameThree(loadingAnimation);
+  useEffect(() => {
+    if (rolling) {
+      turn.current = 0;
+    }
+  }, [rolling]);
+
+  useEffect(() => {
+    setRowPosition(symbols[value ? value : 0]);
+  }, [value, someRow._tag]);
+
+  return <OptionMesh object={someRow} />;
+};
+export const SlotMachineGLThree = ({
+  wheels,
+  getObjectByName,
+  start,
+}: SlotMachineProps) => {
+  const {camera} = useThree();
+  useEffect(() => {
+    camera.position.z = 0.83;
+    camera.position.x = -0.04;
+    camera.position.y = 0.25;
+    camera.rotation.x = Math.degToRad(5);
+    camera.updateProjectionMatrix();
+  }, []);
+  return (
+    <group>
+      <group>
+        {[
+          getObjectByName('Row1'),
+          getObjectByName('Row2'),
+          getObjectByName('Row3'),
+        ].map((r, index) => {
+          return (
+            <SlotMachineGLThreeRow key={index} row={r} wheel={wheels[index]} />
+          );
+        })}
+      </group>
+      <ButtonThree start={start} object={getObjectByName('Empty')} />
+      <OptionMesh object={getObjectByName('SlotMachine')} />
+      <OptionMesh object={getObjectByName('Background')} />
+    </group>
+  );
+};
+
+export const ButtonThree = ({
+  object,
+  start,
+}: {
+  object: option.Option<Object3D>;
+  start: () => void;
+}) => {
+  return (
+    <mesh
+      position={[-0.48435941338539124, -0.131228968501091, 0]}
+      onClick={() => {
+        start();
+      }}>
+      <sphereGeometry attach="geometry" args={[0.1, 12, 12]} />
+      <meshBasicMaterial
+        attach="material"
+        args={[{color: 0xffff00, opacity: 0, transparent: true}]}
+      />
+    </mesh>
   );
 };
 

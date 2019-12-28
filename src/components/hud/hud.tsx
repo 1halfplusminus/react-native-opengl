@@ -16,6 +16,9 @@ import {useCamera} from '../../core/camera';
 import {useRendererScene} from '../../core/render';
 import {pipe} from 'fp-ts/lib/pipeable';
 import {use3DPopper} from '../../core/utils';
+import {Button} from '../core/button';
+import {useThree} from 'react-three-fiber';
+
 export interface HudProps {
   start: () => void;
   getObjectByName: (name: string) => option.Option<Object3D>;
@@ -34,51 +37,51 @@ export const Hud = ({start, getObjectByName}: HudProps) => {
     width: 50,
   }); */
 
-  const {width, height} = useCanvas();
+  /* const {width, height} = useCanvas();
   const {map} = useCamera();
-  const {scene} = useRendererScene();
-  const onPress = (e: GestureResponderEvent) => {
+  const {scene} = useRendererScene(); */
+  const {scene, camera, size} = useThree();
+  /* const onPress = (e: GestureResponderEvent) => {
     const x = e.nativeEvent.pageX;
     const y = e.nativeEvent.pageY;
     const raycaster = new Raycaster();
     const mouse = new Vector2();
-    mouse.x = (x / width) * 2 - 1;
-    mouse.y = -(y / height) * 2 + 1;
-    pipe(
-      scene,
-      option.map(scene => {
-        map(camera => {
-          raycaster.setFromCamera(mouse, camera);
-          // calculate objects intersecting the picking ray
-          var intersects = raycaster.intersectObjects(scene.children);
-          for (var i = 0; i < intersects.length; i++) {
-            intersects[i].object.dispatchEvent({type: 'click', event: e});
-          }
-        });
-      }),
-    );
-  };
+    mouse.x = (x / size.width) * 2 - 1;
+    mouse.y = -(y / size.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    // calculate objects intersecting the picking ray
+    var intersects = raycaster.intersectObjects(scene.children);
+    for (var i = 0; i < intersects.length; i++) {
+      intersects[i].object.dispatchEvent({type: 'click', event: e});
+    }
+  }; */
   return (
-    <TouchableWithoutFeedback onPress={onPress}>
-      <View
-        style={{
-          flex: 1,
-          top: 0,
-          left: 0,
-          height: '100%',
-          width: '100%',
-          position: 'absolute',
-        }}>
-        <UpperLeft />
-        <UpperRight></UpperRight>
-        {/*  <TouchableOpacity
-          style={style}
+    <View
+      style={{
+        flex: 1,
+        top: 0,
+        left: 0,
+        height: '100%',
+        width: '100%',
+        position: 'absolute',
+      }}>
+      <UpperLeft />
+      <LowerLeft>
+        <Button
+          title={'Jouer'}
           onPress={() => {
             start();
           }}
-        /> */}
-      </View>
-    </TouchableWithoutFeedback>
+        />
+      </LowerLeft>
+      <UpperRight></UpperRight>
+      {/*  <TouchableOpacity
+  style={style}
+  onPress={() => {
+    start();
+  }}
+/> */}
+    </View>
   );
 };
 const base = css`
