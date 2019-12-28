@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   DependencyList,
+  useLayoutEffect,
 } from 'react';
 import * as option from 'fp-ts/lib/Option';
 import {UseFrameCallback} from './canvas';
@@ -32,18 +33,20 @@ export const RendererContext = createContext<RendererContext>({
 
 export const useFrame = (cb: UseFrameCallback, deps: any[] = []) => {
   const {subscribers} = useContext(RendererContext);
+
   useEffect(() => {
     subscribers.push(cb);
+    console.log(subscribers.length);
     return () => {
       const index = subscribers.findIndex(c => c === cb);
       subscribers.splice(index, 1);
     };
-  }, [deps]);
+  }, [cb, ...deps]);
 };
 export const useAnimationFrame = () => {
-  const requestId = useRef<number>(0);
   const {subscribers} = useContext(RendererContext);
   const [timeFrame, setTimeFrame] = useState(0);
+  const [currentFrame, setCurrentFrame] = useState(0);
 
   const animate = (cb: UseFrameCallback) => (t: number) => {
     const delta = timeFrame ? (t - timeFrame) / 1000 : 0;
@@ -55,8 +58,10 @@ export const useAnimationFrame = () => {
     setTimeFrame(t);
   };
   return {
-    animate: (cb: UseFrameCallback) => requestAnimationFrame(animate(cb)),
-    endAnimate: () => cancelAnimationFrame(requestId.current),
+    animate: (cb: UseFrameCallback) => {
+      setCurrentFrame(requestAnimationFrame(animate(cb)));
+    },
+    endAnimate: () => cancelAnimationFrame(currentFrame),
     timeFrame,
     subscribers,
   };
@@ -79,7 +84,7 @@ export const useRendererScene = (cb: (scene: Scene) => void = () => {}) => {
   const {scene} = useContext(RendererContext);
   useEffect(() => {
     map(scene)(cb);
-  }, [scene]);
+  }, [scene._tag]);
   return {
     scene,
     isSome: option.isSome(scene),

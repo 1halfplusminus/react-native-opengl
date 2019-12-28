@@ -150,7 +150,6 @@ const Row = ({
   };
   const [turn, setTurn] = useState(0);
   const [symbol, setSymbol] = useState(0);
-  const [rollInBetween, setRollInBetween] = useState(0);
   const speed = 0.07;
   const rollAtSpeed = (speed: number) => {
     pipe(
@@ -160,28 +159,32 @@ const Row = ({
           row.position.y = symbols[0] - speed;
           setTurn(turn + 1);
           setSymbol(0);
-          setRollInBetween(0);
           return;
         }
         if (row.position.y < symbols[symbol + 1]) {
           row.position.y = symbols[symbol + 1] - speed;
           setSymbol(symbol + 1);
-          setRollInBetween(0);
           return;
         }
         row.position.y -= speed;
-        setRollInBetween(rollInBetween - speed);
       }),
     );
   };
   const isFinish = () => turn >= goTo.numberOfTurn && symbol === goTo.value;
+  const setRowPosition = (value: number) =>
+    pipe(
+      someRow,
+      option.map(r => {
+        r.position.y = value;
+      }),
+    );
   const animateRolling: UseFrameCallback = ({delta}) =>
     pipe(
       someRow,
       option.fold(
         () => {},
         row => {
-          if (rolling && !loading) {
+          if (rolling) {
             if (isFinish()) {
               if (onFinish) {
                 onFinish(goTo.value);
@@ -189,15 +192,20 @@ const Row = ({
               }
               return;
             }
-            if (rolling) {
-              rollAtSpeed(speed);
-            }
+            rollAtSpeed(speed);
           }
         },
       ),
     );
   const loadingAnimation: UseFrameCallback = ({delta}) => {
-    if (loading && !rolling) {
+    if (loading || rolling) {
+      if (rolling && isFinish()) {
+        if (onFinish) {
+          onFinish(goTo.value);
+          setRowPosition(symbols[goTo.value]);
+        }
+        return;
+      }
       rollAtSpeed(speed);
     }
   };
@@ -212,8 +220,8 @@ const Row = ({
       requestAnimationFrame(loadingAnimation);
     }
   }, [loading, rollInBetween]); */
-  useFrame(loadingAnimation, [loading]);
-  useFrame(animateRolling, [rolling]);
+  useFrame(loadingAnimation, [rolling, loading]);
+  /*   useFrame(animateRolling); */
   useEffect(() => {
     if (rolling) {
       setTurn(0);
@@ -238,14 +246,19 @@ const initNotZoomed = (c: Camera) => {
 export interface SlotMachineProps {
   wheels: WheelProps[];
   getObjectByName: (name: string) => option.Option<Object3D>;
+  start: () => void;
 }
-export const SlotMachineGL = ({wheels, getObjectByName}: SlotMachineProps) => {
+export const SlotMachineGL = ({
+  wheels,
+  getObjectByName,
+  start,
+}: SlotMachineProps) => {
   useCamera(initNotZoomed);
   return (
     <>
       <MeshComponent object={getObjectByName('SlotMachine')} />
       <MeshComponent object={getObjectByName('Background')} />
-      <Button object={getObjectByName('Empty')} />
+      <Button start={start} object={getObjectByName('Empty')} />
       {[
         getObjectByName('Row1'),
         getObjectByName('Row2'),
@@ -257,7 +270,13 @@ export const SlotMachineGL = ({wheels, getObjectByName}: SlotMachineProps) => {
   );
 };
 
-export const Button = ({object}: {object: option.Option<Object3D>}) => {
+export const Button = ({
+  object,
+  start,
+}: {
+  object: option.Option<Object3D>;
+  start: () => void;
+}) => {
   const {scene} = useRendererScene();
   const [sphere] = useState(
     new Mesh(
@@ -273,8 +292,9 @@ export const Button = ({object}: {object: option.Option<Object3D>}) => {
         sphere.position.x = vector.x;
         sphere.position.y = vector.y;
         sphere.position.z = vector.z - 0.04;
-        sphere.visible = true;
-        sphere.name = 'play';
+        sphere.addEventListener('click', () => {
+          start();
+        });
         addOption(scene)(option.some(sphere));
       }),
     );

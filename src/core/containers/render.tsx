@@ -29,13 +29,12 @@ export const SceneRenderer = ({
   const {camera} = useCamera();
   const [scene, setScene] = useState(defaultScene);
   const refSubscribers = useRef<UseFrameCallback[]>([]);
-  /*  useEffect(() => {
-    console.log('add new camera');
+  useEffect(() => {
     addOption(scene)(camera);
     return () => {
       removeOption(scene)(camera);
     };
-  }, [camera, scene, defaultScene]); */
+  }, [camera, scene, defaultScene]);
   /* useEffect(() => {
     setScene(scene);
   }, [scene]);

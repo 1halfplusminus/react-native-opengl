@@ -145,6 +145,11 @@ const App = () => {
           <SlotMachineGL
             getObjectByName={getObjectByName}
             wheels={[bind(0), bind(1), bind(2)]}
+            start={() => {
+              if (!loading && !rolling) {
+                start();
+              }
+            }}
           />
           <Hud
             getObjectByName={getObjectByName}

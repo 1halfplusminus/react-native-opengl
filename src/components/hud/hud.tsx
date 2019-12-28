@@ -35,7 +35,7 @@ export const Hud = ({start, getObjectByName}: HudProps) => {
   }); */
 
   const {width, height} = useCanvas();
-  const {map, camera} = useCamera();
+  const {map} = useCamera();
   const {scene} = useRendererScene();
   const onPress = (e: GestureResponderEvent) => {
     const x = e.nativeEvent.pageX;
@@ -49,19 +49,11 @@ export const Hud = ({start, getObjectByName}: HudProps) => {
       option.map(scene => {
         map(camera => {
           raycaster.setFromCamera(mouse, camera);
-          pipe(
-            getObjectByName('Empty'),
-            option.map(object => {
-              // calculate objects intersecting the picking ray
-              var intersects = raycaster.intersectObjects(scene.children);
-              for (var i = 0; i < intersects.length; i++) {
-                if (intersects[i].object.name === 'play') {
-                  start();
-                  break;
-                }
-              }
-            }),
-          );
+          // calculate objects intersecting the picking ray
+          var intersects = raycaster.intersectObjects(scene.children);
+          for (var i = 0; i < intersects.length; i++) {
+            intersects[i].object.dispatchEvent({type: 'click', event: e});
+          }
         });
       }),
     );

@@ -5,6 +5,13 @@ import {useCamera} from './camera';
 import * as option from 'fp-ts/lib/Option';
 import {useMemo, useCallback} from 'react';
 import {ViewStyle} from 'react-native';
+import {
+  MathNode,
+  OperatorNode,
+  Vector2Node,
+  TimerNode,
+  UVNode,
+} from 'three/examples/jsm/nodes/Nodes';
 
 export function screenXY({
   object,
@@ -143,3 +150,20 @@ export const use3DPopper = ({
     style: newStyle,
   };
 };
+export function createHorizontalSpriteSheetNode(
+  hCount: number,
+  speedParameter: number,
+) {
+  const speed = new Vector2Node(speedParameter, 0); // frame per second
+  const scale = new Vector2Node(1 / hCount, 1); // 8 horizontal images in sprite-sheet
+  const uvTimer = new OperatorNode(new TimerNode(), speed, OperatorNode.MUL);
+  const uvIntegerTimer = new MathNode(uvTimer, MathNode.FLOOR);
+  const uvFrameOffset = new OperatorNode(
+    uvIntegerTimer,
+    scale,
+    OperatorNode.MUL,
+  );
+  const uvScale = new OperatorNode(new UVNode(), scale, OperatorNode.MUL);
+  const uvFrame = new OperatorNode(uvScale, uvFrameOffset, OperatorNode.ADD);
+  return uvFrame;
+}
