@@ -15,7 +15,7 @@
     "react": "16.9.0",
     "react-native": "0.61.5",
     "react-native-unimodules": "^0.7.0",
-    "three": "^0.111.0"
+    "three": "^0.125.0"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",
